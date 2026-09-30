@@ -59,7 +59,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .role span{font-size:.93rem;color:var(--ink-soft)}
 .role em{font-family:var(--display);font-style:normal;font-size:.85rem;color:var(--gold-text);margin-top:6px}
 .login .foot{text-align:center;font-family:var(--display);font-size:.85rem;color:var(--ink-soft);margin-top:26px}
-@media (max-width:680px){.roles{grid-template-columns:1fr}}
+.roles-2{grid-template-columns:repeat(2,1fr);max-width:520px;margin:0 auto}
+@media (max-width:680px){.roles,.roles-2{grid-template-columns:1fr}}
 
 /* ---------- Shell ---------- */
 .app{display:grid;grid-template-columns:260px 1fr;min-height:100%}
@@ -210,6 +211,21 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-of
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:var(--navy);color:#F3EEE3;font-family:var(--display);padding:12px 18px;border-radius:8px;border:1px solid var(--gold);opacity:0;transition:.25s;z-index:90;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .table-wrap{overflow-x:auto}
+
+/* Admin */
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:980px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.g4{grid-template-columns:1fr}}
+.tbl{width:100%;border-collapse:collapse;font-size:.92rem;min-width:640px}
+.tbl th{font-family:var(--display);font-weight:500;font-size:.8rem;color:var(--ink-soft);text-align:left;padding:0 12px 10px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:12px 12px 12px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .bar{margin:4px 0 0;width:110px}
+.perm{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-top:1px solid var(--line);cursor:pointer}
+.perm:first-child{border-top:0;padding-top:0}
+.perm b{font-family:var(--display);font-weight:500;display:block}
+.perm input{width:20px;height:20px;accent-color:var(--navy);flex:none}
+.locked{border-left:4px solid var(--warn)}
 </style>
 </head>
 <body>
@@ -308,6 +324,7 @@ function seed(){
   const T = "Rochelle Concepcion";
   return {
     tutor:T,
+    adminPerms:defaultPerms(), accessLog:[],
     courses, quizzes,
     students:[
       {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",pkg:{name:"Momentum Growth Pack",total:16,used:9,price:1360,paid:680,due:dayOffset(5),expires:dayOffset(75)},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
@@ -344,11 +361,34 @@ function seed(){
   };
 }
 
+// What the Super Admin can grant or withhold from the Admin: [key, label, description, on by default]
+const PERMS = [
+  ["viewStudents","Student details & progress","Student list, grades, course progress and lessons completed.",true],
+  ["viewResults","Assignments & assessments","Assignment status, grades and assessment scores.",true],
+  ["viewNotes","Session notes","Notes tutors write after every session.",true],
+  ["viewSchedule","Schedule","Upcoming sessions for every student.",true],
+  ["viewBilling","Payments & balances","Package prices, amounts paid, balances and due dates.",false],
+  ["editBilling","Update payment details","Record payments and change due dates. Needs Payments & balances.",false],
+  ["emailParents","Email parents","Send session notes to parents by email.",false]
+];
+const ADMIN = "Carla Mendoza", SUPER = "Rochelle Concepcion";
+function defaultPerms(){ return Object.fromEntries(PERMS.map(p=>[p[0],p[3]])); }
+function can(p){
+  if(!ME) return false;
+  if(ME.role==="tutor"||ME.role==="superadmin") return true;
+  if(ME.role!=="admin") return false;
+  if(p==="editBilling" && !S.adminPerms.viewBilling) return false;
+  return !!S.adminPerms[p];
+}
+const isStaff = () => ["tutor","admin","superadmin"].includes(ME?.role);
 // [name, length, sessions, rate per session, price, savings]
 const PACKAGES = [["Flex Aspire Pass","Pay-as-you-go",1,100,100,0],["Sprint Growth Pack","8 sessions",8,90,720,80],["Momentum Growth Pack","16 sessions",16,85,1360,240],["Ascent Progress Pack","32 sessions",32,80,2560,640],["Semester Conquer Pass","48 sessions",48,75,3600,1200],["Apex Scholar Elite","72 sessions",72,70,5040,2160]];
 let S, ME;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch(e) { S = null; }
 if(!S || !S.students) S = seed();
+if(!S.adminPerms) S.adminPerms = defaultPerms();
+PERMS.forEach(p => { if(S.adminPerms[p[0]]==null) S.adminPerms[p[0]] = p[3]; });
+if(!S.accessLog) S.accessLog = [];
 { const base = seed(); S.students.forEach(s => { const b = base.students.find(x=>x.id===s.id);
   if(s.parentEmail==null) s.parentEmail = b ? b.parentEmail : "";
   if(s.pkg.price==null){ const bp = b && b.pkg.name===s.pkg.name ? b.pkg : null; const rate = (PACKAGES.find(p=>p[0]===s.pkg.name)||[])[3]||0;
@@ -434,7 +474,7 @@ function noteCard(n, showStudent){
     <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">${esc(n.service)}</span><span class="tag">${esc(n.mode)}</span></div></div>
     <p>${esc(n.summary)}</p>
     ${n.next?`<div class="next"><b>Next steps:</b> ${esc(n.next)}</div>`:""}
-    ${ME?.role==="tutor"?`<div style="margin-top:12px"><a class="btn btn-ghost btn-sm" href="${esc(noteMailto(n))}">Email to ${esc(s.parent.split(" ")[0])}</a></div>`:""}
+    ${isStaff()&&can("emailParents")?`<div style="margin-top:12px"><a class="btn btn-ghost btn-sm" href="${esc(noteMailto(n))}">Email to ${esc(s.parent.split(" ")[0])}</a></div>`:""}
   </article>`;
 }
 function sessionRow(x, showStudent){
@@ -560,7 +600,7 @@ V.notes = () => {
   <div class="grid">${ns.length?ns.map(n=>noteCard(n)).join(""):empty("Notes appear here after the first session.")}</div>`;
 };
 V.schedule = () => {
-  const sid = ME.role==="tutor" ? null : ME.student;
+  const sid = isStaff() ? null : ME.student;
   const up = upcoming(sid);
   const form = ME.role==="tutor" ? `<form class="card" data-form="session" style="margin-bottom:28px"><h2>Schedule a session</h2>
     <div class="form-row"><div class="field"><label for="st">Student</label><select id="st" name="student">${S.students.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div>
@@ -627,12 +667,9 @@ V.students = () => `<div class="head"><h1>Students</h1><p>Progress, balances and
     <div class="foot"><span>${o.done}/${o.total} lessons</span><span class="tag ${r<=2?"warn":""}">${r} sessions left</span></div></a>`}).join("")}</div>`;
 V.student = (id) => {
   const s = stu(id); if(!s) return V.notfound();
-  const res = S.results.filter(r=>r.student===id);
-  return `<a class="crumb" href="#/students">← Students</a><div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}</p></div>
-  <div class="grid g3">${balanceCard(s,true)}${nextSessionCard(id)}<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div></div>
-  <h2 class="section-title">Payment &amp; package</h2>
-  <div class="grid g2">${billingCard(s)}
-    <form class="card" data-form="billing" data-id="${s.id}"><h2>Update payment</h2>
+  const res = S.results.filter(r=>r.student===id), tutor = ME.role==="tutor";
+  const back = tutor ? `<a class="crumb" href="#/students">← Students</a>` : `<a class="crumb" href="#/adash">← Students &amp; progress</a>`;
+  const billingForm = can("editBilling") ? `<form class="card" data-form="billing" data-id="${s.id}"><h2>Update payment</h2>
       <p class="small muted" style="margin-top:0">${esc(s.parent)} sees these details on their Overview and Packages pages.</p>
       <div class="form-row">
         <div class="field"><label for="bpr">Package price ($)</label><input type="number" id="bpr" name="price" min="0" step="1" required value="${s.pkg.price||0}"></div>
@@ -641,11 +678,14 @@ V.student = (id) => {
         <div class="field"><label for="bex">Package valid until</label><input type="date" id="bex" name="expires" value="${s.pkg.expires||""}"></div>
       </div>
       <button class="btn btn-primary">Save payment details</button>
-    </form></div>
+    </form>` : "";
+  return `${back}<div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}${isStaff()&&!tutor&&s.parentEmail?" · "+esc(s.parentEmail):""}</p></div>
+  <div class="grid g3">${balanceCard(s,true)}${can("viewSchedule")?nextSessionCard(id):`<div class="card"><div class="label">Lessons completed</div><div class="big">${overall(s).done} <small>of ${overall(s).total}</small></div></div>`}${can("viewResults")?`<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div>`:""}</div>
+  ${can("viewBilling")?`<h2 class="section-title">Payment &amp; package</h2><div class="grid g2">${billingCard(s)}${billingForm}</div>`:""}
   <h2 class="section-title">Courses</h2><div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
-  <h2 class="section-title">Assignments</h2><div class="card">${assignFor(id).length?`<div class="list">${assignFor(id).map(a=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a></h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">No assignments yet.</p>`}</div>
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 class="section-title">Session notes</h2><a class="btn btn-primary btn-sm" href="#/log/${id}">Log a session</a></div>
-  <div class="grid">${notesFor(id).map(n=>noteCard(n)).join("")||empty("No notes yet.")}</div>`;
+  ${can("viewResults")?`<h2 class="section-title">Assignments</h2><div class="card">${assignFor(id).length?`<div class="list">${assignFor(id).map(a=>`<div class="row"><div><h4>${tutor?`<a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a>`:esc(a.title)}</h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">No assignments yet.</p>`}</div>`:""}
+  ${can("viewNotes")?`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 class="section-title">Session notes</h2>${tutor?`<a class="btn btn-primary btn-sm" href="#/log/${id}">Log a session</a>`:""}</div>
+  <div class="grid">${notesFor(id).map(n=>noteCard(n)).join("")||empty("No notes yet.")}</div>`:""}`;
 };
 V.log = (pre) => `<div class="head"><h1>Log a session</h1><p>Saving a note shares it with the student and parent right away and deducts one session from their balance. You can also email the notes straight to the parent.</p></div>
   <form class="card reader" data-form="note">
@@ -684,19 +724,100 @@ V.review = () => {
 };
 V.library = () => `<div class="head"><h1>Course library</h1><p>All lessons across AGC Core Tutoring and AGC Ascent Coaching.</p></div>
   <div class="grid g3">${Object.values(S.courses).map(c=>`<a class="card course" href="#/course/${c.id}"><span class="svc">${esc(c.service)}</span><h3>${esc(c.title)}</h3><p class="small muted" style="margin:0">${esc(c.blurb)}</p><div class="foot"><span>${lessonsOf(c).length} lessons</span><span>${S.students.filter(s=>s.courses.includes(c.id)).length} enrolled</span></div></a>`).join("")}</div>`;
+/* ---------- views: admin & super admin ---------- */
+const pct = (a,b) => b ? Math.round(a/b*100) : 0;
+const avgScore = rs => rs.length ? Math.round(rs.reduce((a,r)=>a+r.score/r.total,0)/rs.length*100) : null;
+const miniBar = p => `<div class="bar" aria-hidden="true"><i style="width:${p}%"></i></div>`;
+const kpi = (label, value, sub, hero) => `<div class="card${hero?" hero-card":""}"><div class="label">${label}</div><div class="big">${value}</div>${sub?`<div class="small muted">${sub}</div>`:""}</div>`;
+const isOverdue = s => { const b = billing(s); return b.owed>0 && b.d!==null && b.d<0; };
+V.restricted = () => `<div class="head"><h1>Access limited</h1><p>The Super Admin has not given the Admin access to this area.</p></div>
+  <div class="card locked"><p style="margin:0">Ask ${esc(SUPER)} (Super Admin) to turn this on under <b>Admin access</b>.</p></div>`;
+V.adash = () => {
+  if(!can("viewStudents")) return V.restricted();
+  const ss = S.students, all = ss.map(s=>overall(s));
+  const done = all.reduce((a,o)=>a+o.done,0), total = all.reduce((a,o)=>a+o.total,0);
+  const low = ss.filter(s=>remaining(s)<=2).length;
+  const owed = ss.reduce((a,s)=>a+billing(s).owed,0), overdue = ss.filter(isOverdue).length;
+  const avg = avgScore(S.results);
+  const cols = ["Student","Progress","Lessons"].concat(can("viewResults")?["Avg. score"]:[],["Sessions left"],can("viewBilling")?["Balance"]:[],can("viewNotes")?["Last session"]:[]);
+  return `<div class="head"><h1>${ME.role==="admin"?greeting()+", "+esc(ADMIN.split(" ")[0]):"Students &amp; progress"}</h1><p>Details and progress for every student at AGC Tutorials.</p></div>
+  <div class="grid g4">
+    ${kpi("Active students", ss.length, `${ss.reduce((a,s)=>a+s.courses.length,0)} course enrollments`, true)}
+    ${kpi("Average progress", pct(done,total)+"%", `${done} of ${total} lessons completed`)}
+    ${can("viewResults")?kpi("Average assessment score", avg===null?"—":avg+"%", `${S.results.length} assessments taken`):kpi("Low session balance", low, "2 or fewer sessions left")}
+    ${can("viewBilling")?kpi("Outstanding balances", money(owed), overdue?`${overdue} overdue`:"Nothing overdue"):kpi("Session notes", S.notes.length, "logged so far")}
+  </div>
+  <h2 class="section-title">All students</h2>
+  <div class="card table-wrap"><table class="tbl"><thead><tr>${cols.map(c=>`<th scope="col">${c}</th>`).join("")}</tr></thead><tbody>
+  ${ss.map(s=>{ const o=overall(s), p=pct(o.done,o.total), r=remaining(s), b=billing(s), last=notesFor(s.id)[0], sc=avgScore(S.results.filter(x=>x.student===s.id));
+    return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/student/${s.id}">${esc(s.name)}</a><div class="small muted">${esc(s.grade)} · ${esc(s.parent)}</div></td>
+      <td>${p}%${miniBar(p)}</td><td>${o.done}/${o.total}</td>
+      ${can("viewResults")?`<td>${sc===null?`<span class="muted">—</span>`:sc+"%"}</td>`:""}
+      <td><span class="tag ${r<=2?"warn":""}">${r} of ${s.pkg.total}</span></td>
+      ${can("viewBilling")?`<td>${b.owed?`<span class="tag ${b.urgent?"warn":"gold"}">${money(b.owed)} · ${b.status}</span>`:`<span class="tag ok">Paid</span>`}</td>`:""}
+      ${can("viewNotes")?`<td>${last?`${fmt(last.date)}<div class="small muted">${esc(last.focus)}</div>`:`<span class="muted">—</span>`}</td>`:""}</tr>`; }).join("")}
+  </tbody></table></div>
+  <h2 class="section-title">Progress by course</h2>
+  <div class="grid g3">${Object.values(S.courses).map(c=>{ const en=ss.filter(s=>s.courses.includes(c.id)); const t=en.reduce((a,s)=>{const q=courseProgress(s,c.id);a.d+=q.done;a.t+=q.total;return a},{d:0,t:0}); const p=pct(t.d,t.t);
+    return `<div class="card"><span class="svc">${esc(c.service)}</span><h3 style="margin-top:4px">${esc(c.title)}</h3>${miniBar(p)}<div class="small muted">${en.length} enrolled · ${p}% complete</div></div>`; }).join("")}</div>`;
+};
+V.portal = () => {
+  const ss = S.students, all = ss.map(s=>overall(s));
+  const done = all.reduce((a,o)=>a+o.done,0), total = all.reduce((a,o)=>a+o.total,0);
+  const bought = ss.reduce((a,s)=>a+s.pkg.total,0), used = ss.reduce((a,s)=>a+s.pkg.used,0);
+  const value = ss.reduce((a,s)=>a+(s.pkg.price||0),0), paid = ss.reduce((a,s)=>a+Math.min(s.pkg.paid||0,s.pkg.price||0),0);
+  const overdue = ss.filter(isOverdue);
+  const A = S.assignments, sub = A.filter(a=>a.status!=="assigned").length, graded = A.filter(a=>a.status==="graded").length;
+  const avg = avgScore(S.results), granted = PERMS.filter(p=>S.adminPerms[p[0]]);
+  const acts = [...S.notes.map(n=>({d:n.date,t:`Session logged for ${stu(n.student)?.name||"a student"}`,m:n.focus})),
+    ...S.results.map(r=>({d:r.date,t:`${stu(r.student)?.name||"A student"} took ${S.quizzes[r.quiz]?.title||"an assessment"}`,m:`Scored ${r.score}/${r.total}`})),
+    ...S.accessLog.map(l=>({d:l.date,t:l.text,m:"Admin access"}))].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,8);
+  const line = (k,v) => `<div class="row"><span class="small muted">${k}</span><span class="small" style="font-family:var(--display);font-weight:500;text-align:right">${v}</span></div>`;
+  return `<div class="head"><h1>${greeting()}, ${esc(SUPER.split(" ")[0])}</h1><p>How the whole AGC Learning Portal is doing: learning, sessions, payments and admin access.</p></div>
+  <div class="grid g4">
+    ${kpi("Lessons completed", pct(done,total)+"%", `${done} of ${total} across ${ss.length} students`, true)}
+    ${kpi("Sessions delivered", used, `of ${bought} purchased · ${pct(used,bought)}%`)}
+    ${kpi("Revenue collected", money(paid), `of ${money(value)} in packages`)}
+    ${kpi("Average assessment", avg===null?"—":avg+"%", `${S.results.length} taken`)}
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><h2>Learning activity</h2><div class="list">
+      ${line("Assignments set", A.length)}${line("Submitted", `${sub} · ${pct(sub,A.length)}%`)}${line("Graded", `${graded} · ${pct(graded,A.length)}%`)}${line("Session notes written", S.notes.length)}${line("Upcoming sessions", upcoming().length)}</div></div>
+    <div class="card"><h2>Payments</h2>${miniBar(pct(paid,value))}<div class="small muted" style="margin-bottom:12px">${pct(paid,value)}% of package value collected</div><div class="list">
+      ${line("Outstanding", money(value-paid))}${line("Overdue accounts", overdue.length?overdue.map(s=>esc(s.parent)).join(", "):"None")}${line("Low session balance", ss.filter(s=>remaining(s)<=2).length+" students")}</div></div>
+    <div class="card"><h2>Admin access</h2><div class="big">${granted.length} <small>of ${PERMS.length} areas</small></div>${miniBar(pct(granted.length,PERMS.length))}
+      <p class="small muted">${esc(ADMIN)} can see: ${granted.map(p=>p[1]).join(", ")||"nothing yet"}.</p><a class="btn btn-ghost btn-sm" href="#/access">Manage access</a></div>
+  </div>
+  <h2 class="section-title">Recent activity</h2>
+  <div class="card">${acts.length?`<div class="list">${acts.map(x=>`<div class="row"><div><h4>${esc(x.t)}</h4><div class="meta">${esc(x.m)}</div></div><span class="small muted" style="white-space:nowrap">${fmt(x.d)}</span></div>`).join("")}</div>`:`<p class="muted" style="margin:0">No activity yet.</p>`}</div>`;
+};
+V.access = () => `<div class="head"><h1>Admin access</h1><p>Choose what ${esc(ADMIN)} (Admin) can see and do. Changes apply the next time the Admin opens a page.</p></div>
+  <div class="grid g2">
+  <form class="card" data-form="perms"><h2>Permissions</h2><div>
+    ${PERMS.map(p=>`<label class="perm"><span><b>${p[1]}</b><span class="small muted">${p[2]}</span></span><input type="checkbox" name="${p[0]}" ${S.adminPerms[p[0]]?"checked":""}></label>`).join("")}
+  </div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button class="btn btn-primary">Save access</button><button type="button" class="btn btn-ghost" data-act="permdefaults">Restore defaults</button></div></form>
+  <div class="card"><h2>Access history</h2>${S.accessLog.length?`<div class="list">${[...S.accessLog].reverse().slice(0,12).map(l=>`<div class="row"><div><h4>${esc(l.text)}</h4><div class="meta">by ${esc(SUPER)}</div></div><span class="small muted" style="white-space:nowrap">${fmt(l.date)}</span></div>`).join("")}</div>`:`<p class="muted" style="margin:0">No changes yet. The Admin has the default access.</p>`}</div>
+  </div>`;
 V.notfound = () => `<div class="head"><h1>Page not found</h1><p>That page doesn't exist. Use the menu to find your way back.</p></div>`;
 
 /* ---------- navigation ---------- */
 const NAV = {
   student:[["dashboard","Dashboard"],["courses","My courses"],["assignments","Assignments"],["assessments","Assessments"],["notes","Session notes"],["schedule","Schedule"]],
   parent:[["overview","Overview"],["notes","Session notes"],["schedule","Schedule"],["packages","Packages & balance"]],
-  tutor:[["tdash","Dashboard"],["students","Students"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["library","Course library"]]
+  tutor:[["tdash","Dashboard"],["students","Students"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["library","Course library"]],
+  admin:[["adash","Students & progress"],["schedule","Schedule"]],
+  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["schedule","Schedule"],["access","Admin access"]]
 };
 const ALLOWED = {
   student:["dashboard","courses","course","lesson","assignments","assignment","assessments","quiz","notes","schedule"],
   parent:["overview","notes","schedule","packages"],
-  tutor:["tdash","students","student","log","review","assignment","schedule","library","course","lesson"]
+  tutor:["tdash","students","student","log","review","assignment","schedule","library","course","lesson"],
+  admin:["adash","student","schedule"],
+  superadmin:["portal","adash","student","schedule","access"]
 };
+// Pages the Admin only sees when the Super Admin allows it
+const NEEDS = {adash:"viewStudents", student:"viewStudents", schedule:"viewSchedule"};
+const navFor = role => NAV[role].filter(([k]) => role!=="admin" || !NEEDS[k] || can(NEEDS[k]));
 function route(){ const h = location.hash.replace(/^#\/?/,""); const [name,...args] = h.split("/"); return {name,args}; }
 
 function renderLogin(){
@@ -708,28 +829,36 @@ function renderLogin(){
       <button class="role" data-act="login" data-role="parent" data-student="s1"><b>Parent</b><span>Follow progress, read session notes and track your balance.</span><em>Sign in as Ana Santos</em></button>
       <button class="role" data-act="login" data-role="tutor"><b>Tutor</b><span>Log sessions, grade work and manage your students.</span><em>Sign in as Rochelle Concepcion</em></button>
     </div>
+    <div class="label" style="text-align:center;margin:26px 0 12px">Staff</div>
+    <div class="roles roles-2">
+      <button class="role" data-act="login" data-role="admin"><b>Admin</b><span>Oversee every student's details, progress and results.</span><em>Sign in as ${esc(ADMIN)}</em></button>
+      <button class="role" data-act="login" data-role="superadmin"><b>Super Admin</b><span>See how the whole portal is doing and control what the Admin can access.</span><em>Sign in as ${esc(SUPER)}</em></button>
+    </div>
     <p class="foot">Demo accounts · Changes are saved in this browser · <button data-act="reset" style="background:none;border:0;color:var(--gold-text);cursor:pointer;text-decoration:underline;font:inherit">Reset demo data</button></p>
   </div></div>`;
 }
 function whoLabel(){
   if(ME.role==="tutor") return {n:S.tutor,r:"Founder & Tutor"};
+  if(ME.role==="admin") return {n:ADMIN,r:"Admin"};
+  if(ME.role==="superadmin") return {n:SUPER,r:"Super Admin"};
   const s = stu(ME.student); return ME.role==="parent" ? {n:s.parent,r:"Parent of "+s.name.split(" ")[0]} : {n:s.name,r:"Student · "+s.grade};
 }
 function render(){
   if(!ME){ renderLogin(); return; }
   let {name,args} = route();
-  if(!ALLOWED[ME.role].includes(name)){ name = NAV[ME.role][0][0]; history.replaceState(null,"","#/"+name); args=[]; }
-  const html = (V[name]||V.notfound)(...args);
+  if(!ALLOWED[ME.role]){ ME = null; saveMe(); renderLogin(); return; }
+  if(!ALLOWED[ME.role].includes(name)){ name = (navFor(ME.role)[0]||NAV[ME.role][0])[0]; history.replaceState(null,"","#/"+name); args=[]; }
+  const html = ME.role==="admin" && NEEDS[name] && !can(NEEDS[name]) ? V.restricted() : (V[name]||V.notfound)(...args);
   const pending = S.assignments.filter(a=>a.status==="submitted").length;
   const todo = ME.role==="student" ? assignFor(ME.student).filter(a=>a.status==="assigned").length : 0;
-  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:"students"};
+  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:ME.role==="tutor"?"students":"adash"};
   const active = parentOf[name] || name;
   const w = whoLabel();
   document.getElementById("root").innerHTML = `<div class="app">
     <div class="topbar"><button data-act="menu" aria-controls="side" aria-expanded="false">Menu</button><b>AGC Learning Portal</b></div>
     <div class="scrim" data-act="closemenu"></div>
     <aside class="side" id="side"><div class="logo"><img src="${LOGO}" alt="AGC Tutorials"></div>
-      <nav aria-label="Main">${NAV[ME.role].map(([k,l])=>{const badge=k==="review"&&pending?`<span class="pill">${pending}</span>`:k==="assignments"&&todo?`<span class="pill">${todo}</span>`:"";return `<a href="#/${k}" ${k===active?'aria-current="page"':""}>${l}${badge}</a>`}).join("")}</nav>
+      <nav aria-label="Main">${navFor(ME.role).map(([k,l])=>{const badge=k==="review"&&pending?`<span class="pill">${pending}</span>`:k==="assignments"&&todo?`<span class="pill">${todo}</span>`:"";return `<a href="#/${k}" ${k===active?'aria-current="page"':""}>${l}${badge}</a>`}).join("")}</nav>
       <div class="who"><b>${esc(w.n)}</b><span>${esc(w.r)}</span><br><button data-act="logout">Switch account</button></div>
     </aside>
     <main><div class="page">${html}</div></main></div>`;
@@ -747,6 +876,7 @@ document.addEventListener("click", e => {
   if(a==="closemenu"){ document.getElementById("side").classList.remove("open"); b.classList.remove("show"); }
   if(a==="complete"){ const s = currentStudent(); if(!s.done.includes(b.dataset.lid)) s.done.push(b.dataset.lid); save(); toast("Lesson complete. One step higher!");
     location.hash = b.dataset.next ? `#/lesson/${b.dataset.cid}/${b.dataset.next}` : `#/course/${b.dataset.cid}`; }
+  if(a==="permdefaults"){ S.adminPerms = defaultPerms(); S.accessLog.push({date:today(),text:"Admin access reset to defaults"}); save(); toast("Admin access reset to defaults"); render(); }
   if(a==="retake"){ lastQuiz = null; render(); window.scrollTo(0,0); }
 });
 document.addEventListener("change", e => {
@@ -767,7 +897,12 @@ document.addEventListener("submit", e => {
     const mail = d.emailParent && email;
     toast(`Note saved · ${remaining(s)} sessions left for ${s.name.split(" ")[0]}${mail?" · opening email to "+s.parent.split(" ")[0]:d.emailParent?" · add a parent email to send notes":""}`);
     location.hash = "#/student/"+s.id; if(mail) location.href = noteMailto(n, email); }
-  if(kind==="billing"){ const s = stu(f.dataset.id);
+  if(kind==="perms"){ if(ME.role!=="superadmin") return;
+    const changes = PERMS.filter(p => !!d[p[0]] !== !!S.adminPerms[p[0]]).map(p => (d[p[0]]?"Allowed ":"Removed ")+p[1]);
+    PERMS.forEach(p => S.adminPerms[p[0]] = !!d[p[0]]);
+    changes.forEach(c => S.accessLog.push({date:today(),text:c}));
+    save(); toast(changes.length ? `Admin access updated · ${changes.length} change${changes.length>1?"s":""}` : "No changes"); render(); }
+  if(kind==="billing"){ if(!can("editBilling")) return; const s = stu(f.dataset.id);
     Object.assign(s.pkg, {price:Math.max(0,Number(d.price)||0), paid:Math.max(0,Number(d.paid)||0), due:d.due||"", expires:d.expires||""}); save();
     const b = billing(s); toast(b.owed ? `Saved · ${money(b.owed)} balance for ${s.parent.split(" ")[0]}` : "Saved · paid in full"); render(); }
   if(kind==="assign"){ S.assignments.push({id:uid("as"),student:d.student,course:d.course,title:d.title.trim(),due:d.due,instructions:d.instructions.trim(),status:"assigned"});
