@@ -327,9 +327,9 @@ function seed(){
     adminPerms:defaultPerms(), accessLog:[],
     courses, quizzes,
     students:[
-      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",pkg:{name:"Momentum Growth Pack",total:16,used:9,price:1360,paid:680,due:dayOffset(5),expires:dayOffset(75)},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
-      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",pkg:{name:"Sprint Growth Pack",total:8,used:6,price:720,paid:720,due:"",expires:dayOffset(21)},courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
-      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",pkg:{name:"Flex Aspire Pass",total:2,used:1,price:200,paid:100,due:dayOffset(-2),expires:dayOffset(30)},courses:["read"],done:["r1"]}
+      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",profile:{birthday:"2013-10-12",school:"Lincoln Middle School",lives:"Pasadena, CA",from:"Quezon City, Philippines",enrolled:"2026-06-15",source:"Referral from a friend",parentPhone:"(555) 214-8830",emergency:"Ramon Santos (father) · (555) 214-8831",needs:"Visual learner who does best with worked examples. Gets nervous before tests."},pkg:{name:"Momentum Growth Pack",total:16,used:9,price:1360,paid:680,due:dayOffset(5),expires:dayOffset(75)},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
+      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",profile:{birthday:"2010-02-03",school:"Westview High School",lives:"Glendale, CA",from:"Cebu City, Philippines",enrolled:"2026-08-01",source:"Google search",parentPhone:"(555) 377-1902",emergency:"Paolo Cruz (uncle) · (555) 377-4410",needs:"Preparing for AP Chemistry. Prefers online sessions on weekdays."},pkg:{name:"Sprint Growth Pack",total:8,used:6,price:720,paid:720,due:"",expires:dayOffset(21)},courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
+      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",profile:{birthday:"2017-05-21",school:"Maple Elementary",lives:"Burbank, CA",from:"Burbank, CA",enrolled:"2026-09-10",source:"School recommendation",parentPhone:"(555) 408-5567",emergency:"Elena Reyes (grandmother) · (555) 408-1120",needs:"Has an IEP for reading fluency. Short movement break every 15 minutes."},pkg:{name:"Flex Aspire Pass",total:2,used:1,price:200,paid:100,due:dayOffset(-2),expires:dayOffset(30)},courses:["read"],done:["r1"]}
     ],
     assignments:[
       {id:"as1",student:"s1",course:"alg1",title:"Two-step equations practice",due:dayOffset(3),status:"assigned",instructions:"Solve the five equations on your worksheet and show every step on its own line. Then write one sentence explaining which operation you undo first and why."},
@@ -364,6 +364,7 @@ function seed(){
 // What the Super Admin can grant or withhold from the Admin: [key, label, description, on by default]
 const PERMS = [
   ["viewStudents","Student details & progress","Student list, grades, course progress and lessons completed.",true],
+  ["editProfiles","Edit student profiles","Update birthdays, school, address, contacts and learning needs.",true],
   ["viewResults","Assignments & assessments","Assignment status, grades and assessment scores.",true],
   ["viewNotes","Session notes","Notes tutors write after every session.",true],
   ["viewSchedule","Schedule","Upcoming sessions for every student.",true],
@@ -378,6 +379,7 @@ function can(p){
   if(ME.role==="tutor"||ME.role==="superadmin") return true;
   if(ME.role!=="admin") return false;
   if(p==="editBilling" && !S.adminPerms.viewBilling) return false;
+  if(p==="editProfiles" && !S.adminPerms.viewStudents) return false;
   return !!S.adminPerms[p];
 }
 const isStaff = () => ["tutor","admin","superadmin"].includes(ME?.role);
@@ -391,6 +393,7 @@ PERMS.forEach(p => { if(S.adminPerms[p[0]]==null) S.adminPerms[p[0]] = p[3]; });
 if(!S.accessLog) S.accessLog = [];
 { const base = seed(); S.students.forEach(s => { const b = base.students.find(x=>x.id===s.id);
   if(s.parentEmail==null) s.parentEmail = b ? b.parentEmail : "";
+  if(!s.profile) s.profile = b && b.name===s.name ? {...b.profile} : {};
   if(s.pkg.price==null){ const bp = b && b.pkg.name===s.pkg.name ? b.pkg : null; const rate = (PACKAGES.find(p=>p[0]===s.pkg.name)||[])[3]||0;
     Object.assign(s.pkg, bp ? {price:bp.price,paid:bp.paid,due:bp.due,expires:bp.expires} : {price:rate*s.pkg.total,paid:0,due:"",expires:""}); } }); }
 try { ME = JSON.parse(localStorage.getItem(ME_KEY)); } catch(e) { ME = null; }
@@ -424,6 +427,51 @@ function balanceCard(s, hero){
     <div class="small muted">${esc(s.pkg.name)} · ${s.pkg.used} used</div>
     ${r<=2?`<p class="small" style="margin:10px 0 0;color:${hero?"#E6C27E":"var(--warn)"}">${r===0?"No sessions left.":"Running low."} Renew a package to keep your schedule.</p>`:""}
   </div>`;
+}
+const SOURCES = ["Referral from a friend","Google search","Facebook or Instagram","School recommendation","Returning family","Walk-in","Other"];
+function ageOf(b){ if(!b) return null; const d = parse(b), n = parse(today()); let a = n.getFullYear()-d.getFullYear(); if(n.getMonth()<d.getMonth() || (n.getMonth()===d.getMonth() && n.getDate()<d.getDate())) a--; return a; }
+function daysToBirthday(b){ if(!b) return null; const d = parse(b), n = parse(today()); let x = new Date(n.getFullYear(), d.getMonth(), d.getDate()); if(x < n) x = new Date(n.getFullYear()+1, d.getMonth(), d.getDate()); return Math.round((x-n)/86400000); }
+const bdayLabel = b => { const d = daysToBirthday(b); return d===null ? "" : d===0 ? "Birthday today! 🎂" : d===1 ? "Birthday tomorrow" : d<=30 ? `Birthday in ${d} days` : ""; };
+const fmtBday = b => parse(b).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+function profileCard(s){
+  const p = s.profile||{}, age = ageOf(p.birthday), soon = bdayLabel(p.birthday), dash = `<span class="muted">Not added</span>`;
+  const line = (k,v) => `<div class="row"><span class="small muted">${k}</span><span class="small" style="font-family:var(--display);font-weight:500;text-align:right">${v||dash}</span></div>`;
+  return `<div class="card"><h2>Student details</h2><div class="list">
+    ${line("Birthday", p.birthday ? `${fmtBday(p.birthday)} · ${age} years old${soon?` <span class="tag gold">${soon}</span>`:""}` : "")}
+    ${line("Grade", esc(s.grade))}
+    ${line("School", esc(p.school||""))}
+    ${line("Lives in", esc(p.lives||""))}
+    ${line("Originally from", esc(p.from||""))}
+    ${line("Joined AGC", p.enrolled ? fmtBday(p.enrolled) : "")}
+    ${line("How they found AGC", esc(p.source||""))}
+  </div></div>
+  <div class="card"><h2>Family &amp; contacts</h2><div class="list">
+    ${line("Parent / guardian", esc(s.parent))}
+    ${line("Parent email", s.parentEmail ? `<a class="linkish" href="mailto:${esc(s.parentEmail)}">${esc(s.parentEmail)}</a>` : "")}
+    ${line("Parent phone", p.parentPhone ? `<a class="linkish" href="tel:${esc(p.parentPhone.replace(/[^0-9+]/g,""))}">${esc(p.parentPhone)}</a>` : "")}
+    ${line("Emergency contact", esc(p.emergency||""))}
+  </div>
+  <h2 style="margin-top:20px">Learning needs &amp; notes</h2><p class="small" style="margin:0">${p.needs?esc(p.needs):dash}</p></div>`;
+}
+function profileForm(s){
+  const p = s.profile||{}, f = (id,label,name,type,val,ph) => `<div class="field"><label for="${id}">${label}</label><input type="${type}" id="${id}" name="${name}" value="${esc(val||"")}" ${ph?`placeholder="${ph}"`:""}></div>`;
+  return `<details class="card" style="margin-top:16px"><summary style="cursor:pointer;font-family:var(--display);font-weight:600">Edit profile</summary>
+  <form data-form="profile" data-id="${s.id}" style="margin-top:18px"><div class="form-row">
+    ${f("pn","Student name","name","text",s.name)}
+    ${f("pg","Grade","grade","text",s.grade,"e.g. Grade 8")}
+    ${f("pb","Birthday","birthday","date",p.birthday)}
+    ${f("psc","School","school","text",p.school,"School name")}
+    ${f("pl","Lives in","lives","text",p.lives,"City, state")}
+    ${f("pf","Originally from","from","text",p.from,"Hometown or country")}
+    ${f("pe","Joined AGC","enrolled","date",p.enrolled)}
+    <div class="field"><label for="ps">How they found AGC</label><select id="ps" name="source"><option value="">Choose…</option>${SOURCES.map(o=>`<option ${o===p.source?"selected":""}>${o}</option>`).join("")}</select></div>
+    ${f("pp","Parent / guardian","parent","text",s.parent)}
+    ${f("pm","Parent email","parentEmail","email",s.parentEmail,"parent@example.com")}
+    ${f("pph","Parent phone","parentPhone","text",p.parentPhone)}
+    ${f("pem","Emergency contact","emergency","text",p.emergency,"Name (relationship) · phone")}
+  </div>
+  <div class="field"><label for="pnd">Learning needs &amp; notes</label><textarea id="pnd" name="needs" placeholder="IEP or 504 plan, learning style, allergies, anything tutors should know">${esc(p.needs||"")}</textarea></div>
+  <button class="btn btn-primary">Save profile</button></form></details>`;
 }
 const money = n => "$" + Math.round(n).toLocaleString("en-US");
 function billing(s){
@@ -681,6 +729,7 @@ V.student = (id) => {
     </form>` : "";
   return `${back}<div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}${isStaff()&&!tutor&&s.parentEmail?" · "+esc(s.parentEmail):""}</p></div>
   <div class="grid g3">${balanceCard(s,true)}${can("viewSchedule")?nextSessionCard(id):`<div class="card"><div class="label">Lessons completed</div><div class="big">${overall(s).done} <small>of ${overall(s).total}</small></div></div>`}${can("viewResults")?`<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div>`:""}</div>
+  <h2 class="section-title">Profile</h2><div class="grid g2">${profileCard(s)}</div>${can("editProfiles")?profileForm(s):""}
   ${can("viewBilling")?`<h2 class="section-title">Payment &amp; package</h2><div class="grid g2">${billingCard(s)}${billingForm}</div>`:""}
   <h2 class="section-title">Courses</h2><div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
   ${can("viewResults")?`<h2 class="section-title">Assignments</h2><div class="card">${assignFor(id).length?`<div class="list">${assignFor(id).map(a=>`<div class="row"><div><h4>${tutor?`<a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a>`:esc(a.title)}</h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">No assignments yet.</p>`}</div>`:""}
@@ -750,13 +799,15 @@ V.adash = () => {
   <h2 class="section-title">All students</h2>
   <div class="card table-wrap"><table class="tbl"><thead><tr>${cols.map(c=>`<th scope="col">${c}</th>`).join("")}</tr></thead><tbody>
   ${ss.map(s=>{ const o=overall(s), p=pct(o.done,o.total), r=remaining(s), b=billing(s), last=notesFor(s.id)[0], sc=avgScore(S.results.filter(x=>x.student===s.id));
-    return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/student/${s.id}">${esc(s.name)}</a><div class="small muted">${esc(s.grade)} · ${esc(s.parent)}</div></td>
+    return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/student/${s.id}">${esc(s.name)}</a><div class="small muted">${esc(s.grade)}${s.profile?.birthday?" · age "+ageOf(s.profile.birthday):""}${s.profile?.school?" · "+esc(s.profile.school):""}</div></td>
       <td>${p}%${miniBar(p)}</td><td>${o.done}/${o.total}</td>
       ${can("viewResults")?`<td>${sc===null?`<span class="muted">—</span>`:sc+"%"}</td>`:""}
       <td><span class="tag ${r<=2?"warn":""}">${r} of ${s.pkg.total}</span></td>
       ${can("viewBilling")?`<td>${b.owed?`<span class="tag ${b.urgent?"warn":"gold"}">${money(b.owed)} · ${b.status}</span>`:`<span class="tag ok">Paid</span>`}</td>`:""}
       ${can("viewNotes")?`<td>${last?`${fmt(last.date)}<div class="small muted">${esc(last.focus)}</div>`:`<span class="muted">—</span>`}</td>`:""}</tr>`; }).join("")}
   </tbody></table></div>
+  ${(()=>{ const up = ss.filter(s=>s.profile?.birthday).map(s=>({s,d:daysToBirthday(s.profile.birthday)})).sort((a,b)=>a.d-b.d);
+    return up.length ? `<h2 class="section-title">Upcoming birthdays</h2><div class="card"><div class="list">${up.map(({s,d})=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/student/${s.id}">${esc(s.name)}</a></h4><div class="meta">${fmtBday(s.profile.birthday).replace(/, \d{4}$/,"")} · turns ${ageOf(s.profile.birthday)+(d===0?0:1)}</div></div><span class="tag ${d<=30?"gold":""}">${d===0?"Today 🎂":d===1?"Tomorrow":"In "+d+" days"}</span></div>`).join("")}</div></div>` : ""; })()}
   <h2 class="section-title">Progress by course</h2>
   <div class="grid g3">${Object.values(S.courses).map(c=>{ const en=ss.filter(s=>s.courses.includes(c.id)); const t=en.reduce((a,s)=>{const q=courseProgress(s,c.id);a.d+=q.done;a.t+=q.total;return a},{d:0,t:0}); const p=pct(t.d,t.t);
     return `<div class="card"><span class="svc">${esc(c.service)}</span><h3 style="margin-top:4px">${esc(c.title)}</h3>${miniBar(p)}<div class="small muted">${en.length} enrolled · ${p}% complete</div></div>`; }).join("")}</div>`;
@@ -902,6 +953,11 @@ document.addEventListener("submit", e => {
     PERMS.forEach(p => S.adminPerms[p[0]] = !!d[p[0]]);
     changes.forEach(c => S.accessLog.push({date:today(),text:c}));
     save(); toast(changes.length ? `Admin access updated · ${changes.length} change${changes.length>1?"s":""}` : "No changes"); render(); }
+  if(kind==="profile"){ if(!can("editProfiles")) return; const s = stu(f.dataset.id);
+    if(d.name.trim()) s.name = d.name.trim(); if(d.grade.trim()) s.grade = d.grade.trim(); if(d.parent.trim()) s.parent = d.parent.trim();
+    s.parentEmail = d.parentEmail.trim();
+    s.profile = {birthday:d.birthday, school:d.school.trim(), lives:d.lives.trim(), from:d.from.trim(), enrolled:d.enrolled, source:d.source, parentPhone:d.parentPhone.trim(), emergency:d.emergency.trim(), needs:d.needs.trim()};
+    save(); toast("Profile saved for "+s.name.split(" ")[0]); render(); }
   if(kind==="billing"){ if(!can("editBilling")) return; const s = stu(f.dataset.id);
     Object.assign(s.pkg, {price:Math.max(0,Number(d.price)||0), paid:Math.max(0,Number(d.paid)||0), due:d.due||"", expires:d.expires||""}); save();
     const b = billing(s); toast(b.owed ? `Saved · ${money(b.owed)} balance for ${s.parent.split(" ")[0]}` : "Saved · paid in full"); render(); }
