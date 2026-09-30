@@ -177,7 +177,7 @@ main{padding:clamp(22px,4vw,44px) clamp(18px,4vw,48px) 60px;min-width:0}
 /* Forms */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .field label{font-family:var(--display);font-size:.88rem;font-weight:500}
-input[type=text],input[type=email],input[type=date],input[type=time],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input[type=text],input[type=email],input[type=number],input[type=date],input[type=time],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
 textarea{min-height:110px;resize:vertical;line-height:1.55}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
 .form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
@@ -310,9 +310,9 @@ function seed(){
     tutor:T,
     courses, quizzes,
     students:[
-      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",pkg:{name:"Momentum Growth Pack",total:16,used:9},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
-      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",pkg:{name:"Sprint Growth Pack",total:8,used:6},courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
-      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",pkg:{name:"Flex Aspire Pass",total:2,used:1},courses:["read"],done:["r1"]}
+      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",pkg:{name:"Momentum Growth Pack",total:16,used:9,price:1360,paid:680,due:dayOffset(5),expires:dayOffset(75)},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
+      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",pkg:{name:"Sprint Growth Pack",total:8,used:6,price:720,paid:720,due:"",expires:dayOffset(21)},courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
+      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",pkg:{name:"Flex Aspire Pass",total:2,used:1,price:200,paid:100,due:dayOffset(-2),expires:dayOffset(30)},courses:["read"],done:["r1"]}
     ],
     assignments:[
       {id:"as1",student:"s1",course:"alg1",title:"Two-step equations practice",due:dayOffset(3),status:"assigned",instructions:"Solve the five equations on your worksheet and show every step on its own line. Then write one sentence explaining which operation you undo first and why."},
@@ -344,10 +344,15 @@ function seed(){
   };
 }
 
+// [name, length, sessions, rate per session, price, savings]
+const PACKAGES = [["Flex Aspire Pass","Pay-as-you-go",1,100,100,0],["Sprint Growth Pack","8 sessions",8,90,720,80],["Momentum Growth Pack","16 sessions",16,85,1360,240],["Ascent Progress Pack","32 sessions",32,80,2560,640],["Semester Conquer Pass","48 sessions",48,75,3600,1200],["Apex Scholar Elite","72 sessions",72,70,5040,2160]];
 let S, ME;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch(e) { S = null; }
 if(!S || !S.students) S = seed();
-{ const base = seed(); S.students.forEach(s => { if(s.parentEmail==null){ const b = base.students.find(x=>x.id===s.id); s.parentEmail = b ? b.parentEmail : ""; } }); }
+{ const base = seed(); S.students.forEach(s => { const b = base.students.find(x=>x.id===s.id);
+  if(s.parentEmail==null) s.parentEmail = b ? b.parentEmail : "";
+  if(s.pkg.price==null){ const bp = b && b.pkg.name===s.pkg.name ? b.pkg : null; const rate = (PACKAGES.find(p=>p[0]===s.pkg.name)||[])[3]||0;
+    Object.assign(s.pkg, bp ? {price:bp.price,paid:bp.paid,due:bp.due,expires:bp.expires} : {price:rate*s.pkg.total,paid:0,due:"",expires:""}); } }); }
 try { ME = JSON.parse(localStorage.getItem(ME_KEY)); } catch(e) { ME = null; }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 function saveMe(){ try{ ME ? localStorage.setItem(ME_KEY, JSON.stringify(ME)) : localStorage.removeItem(ME_KEY); }catch(e){} }
@@ -380,6 +385,31 @@ function balanceCard(s, hero){
     ${r<=2?`<p class="small" style="margin:10px 0 0;color:${hero?"#E6C27E":"var(--warn)"}">${r===0?"No sessions left.":"Running low."} Renew a package to keep your schedule.</p>`:""}
   </div>`;
 }
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+function billing(s){
+  const p = s.pkg, owed = Math.max(0, (p.price||0) - (p.paid||0)), rate = p.total ? (p.price||0)/p.total : 0;
+  const d = owed && p.due ? daysUntil(p.due) : null;
+  const status = !owed ? "Paid in full" : d===null ? "Balance due" : d<0 ? `Overdue by ${-d} day${d===-1?"":"s"}` : d===0 ? "Due today" : d===1 ? "Due tomorrow" : `Due in ${d} days`;
+  return {owed, rate, d, status, urgent: owed>0 && d!==null && d<=3, availed: rate*p.used, left: rate*remaining(s)};
+}
+function billingCard(s){
+  const p = s.pkg, b = billing(s);
+  const line = (k,v) => `<div class="row"><span class="small muted">${k}</span><span class="small" style="font-family:var(--display);font-weight:500;text-align:right">${v}</span></div>`;
+  return `<div class="card">
+    <div class="label">Payment &amp; package</div>
+    <div class="big" style="margin-top:4px">${money(b.owed)} <small>${b.owed?"balance due":"owed"}</small></div>
+    <span class="tag ${!b.owed?"ok":b.urgent?"warn":"gold"}" style="display:inline-block;margin:8px 0 14px">${b.status}</span>
+    <div class="list">
+      ${line("Package", esc(p.name))}
+      ${line("Package price", money(p.price||0))}
+      ${line("Paid so far", money(p.paid||0))}
+      ${b.owed?line("Payment due date", p.due?fmtLong(p.due):"Not set"):""}
+      ${line("Sessions availed", `${p.used} of ${p.total} · ${money(b.availed)}`)}
+      ${line("Sessions remaining", `${remaining(s)} · ${money(b.left)} value`)}
+      ${line("Package valid until", p.expires?fmtLong(p.expires):"No expiry")}
+    </div>
+  </div>`;
+}
 function nextSessionCard(sid){
   const n = upcoming(sid)[0];
   if(!n) return `<div class="card"><div class="label">Next session</div><p class="muted" style="margin:8px 0 0">Nothing scheduled yet.</p></div>`;
@@ -392,7 +422,9 @@ function noteMailto(n, to){
   const s = stu(n.student); const first = s.name.split(" ")[0];
   const body = [`Hi ${s.parent.split(" ")[0]},`,"",`Here are the notes from ${first}'s session on ${fmtLong(n.date)}.`,"",
     `Service: ${n.service} · ${n.mode}`,`Focus: ${n.focus}`,"","What we worked on:",n.summary,
-    ...(n.next?["","Next steps:",n.next]:[]),"",`Sessions remaining: ${remaining(s)} of ${s.pkg.total} (${s.pkg.name})`,"","Thank you,",S.tutor,"AGC Tutorials"].join("\n");
+    ...(n.next?["","Next steps:",n.next]:[]),"",`Sessions remaining: ${remaining(s)} of ${s.pkg.total} (${s.pkg.name})`,
+    ...(()=>{ const b = billing(s); return b.owed ? [`Balance due: ${money(b.owed)}${s.pkg.due?` · ${b.status.toLowerCase()} (${fmtLong(s.pkg.due)})`:""}`] : ["Package: paid in full"]; })(),
+    ...(s.pkg.expires?[`Package valid until: ${fmtLong(s.pkg.expires)}`]:[]),"","Thank you,",S.tutor,"AGC Tutorials"].join("\n");
   return `mailto:${encodeURIComponent(to||s.parentEmail||"").replace(/%40/g,"@")}?subject=${encodeURIComponent(`Session notes: ${s.name} · ${fmtLong(n.date)}`)}&body=${encodeURIComponent(body)}`;
 }
 function noteCard(n, showStudent){
@@ -548,7 +580,11 @@ V.overview = () => {
   const graded = assignFor(s.id).filter(a=>a.status==="graded");
   const res = S.results.filter(r=>r.student===s.id).sort((a,b)=>b.date.localeCompare(a.date));
   const note = notesFor(s.id)[0];
+  const b = billing(s);
   return `<div class="head"><h1>${esc(s.name)}'s progress</h1><p>${esc(s.grade)} · Your window into every session, lesson and result.</p></div>
+  ${b.owed?`<a class="card" href="#/packages" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;border-left:4px solid ${b.urgent?"var(--warn)":"var(--gold)"};text-decoration:none;color:inherit">
+    <div><div class="label">Payment reminder</div><div style="font-family:var(--display);font-weight:600;font-size:1.1rem;margin-top:2px">${money(b.owed)} balance on ${esc(s.pkg.name)}${s.pkg.due?` · due ${fmtLong(s.pkg.due)}`:""}</div></div>
+    <span class="tag ${b.urgent?"warn":"gold"}">${b.status}</span></a>`:""}
   <div class="grid g3">${balanceCard(s,true)}${nextSessionCard(s.id)}
     <div class="card"><div class="label">Lessons completed</div><div class="big">${o.done} <small>of ${o.total}</small></div>${stairs(o.done,o.total)}</div></div>
   <h2 class="section-title">Progress by course</h2>
@@ -563,9 +599,10 @@ V.overview = () => {
 };
 V.packages = () => {
   const s = currentStudent();
-  const P = [["Flex Aspire Pass","Pay-as-you-go",1,100,100,0],["Sprint Growth Pack","8 sessions",8,90,720,80],["Momentum Growth Pack","16 sessions",16,85,1360,240],["Ascent Progress Pack","32 sessions",32,80,2560,640],["Semester Conquer Pass","48 sessions",48,75,3600,1200],["Apex Scholar Elite","72 sessions",72,70,5040,2160]];
-  return `<div class="head"><h1>Packages &amp; balance</h1><p>Track sessions used and compare packages when it's time to renew.</p></div>
-  <div class="grid g2" style="margin-bottom:28px">${balanceCard(s,true)}<div class="card"><h2>Current package</h2><p style="margin:0 0 6px"><b style="font-family:var(--display)">${esc(s.pkg.name)}</b></p><p class="muted small" style="margin:0">${s.pkg.used} of ${s.pkg.total} sessions used. Each session is 60 minutes of 1:1 support.</p></div></div>
+  const P = PACKAGES;
+  return `<div class="head"><h1>Packages &amp; balance</h1><p>Track sessions used, what you owe and when it's due, and compare packages when it's time to renew.</p></div>
+  <div class="grid g2" style="margin-bottom:28px">${balanceCard(s,true)}${billingCard(s)}</div>
+  <h2 class="section-title">Compare packages</h2>
   <div class="card table-wrap"><div class="list">${P.map(p=>`<div class="row"><div><h4>${p[0]}${p[0]===s.pkg.name?' <span class="tag gold">Current</span>':""}</h4><div class="meta">${p[1]} · $${p[3]}/session</div></div><div style="text-align:right;font-family:var(--display)"><b>$${p[4].toLocaleString()}</b>${p[5]?`<div class="small" style="color:var(--gold-text)">Save $${p[5].toLocaleString()}</div>`:""}</div></div>`).join("")}</div></div>
   <p class="small muted" style="margin-top:14px">To renew or change packages, contact AGC Tutorials or use the cart on our website.</p>`;
 };
@@ -593,6 +630,18 @@ V.student = (id) => {
   const res = S.results.filter(r=>r.student===id);
   return `<a class="crumb" href="#/students">← Students</a><div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}</p></div>
   <div class="grid g3">${balanceCard(s,true)}${nextSessionCard(id)}<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div></div>
+  <h2 class="section-title">Payment &amp; package</h2>
+  <div class="grid g2">${billingCard(s)}
+    <form class="card" data-form="billing" data-id="${s.id}"><h2>Update payment</h2>
+      <p class="small muted" style="margin-top:0">${esc(s.parent)} sees these details on their Overview and Packages pages.</p>
+      <div class="form-row">
+        <div class="field"><label for="bpr">Package price ($)</label><input type="number" id="bpr" name="price" min="0" step="1" required value="${s.pkg.price||0}"></div>
+        <div class="field"><label for="bpd">Paid so far ($)</label><input type="number" id="bpd" name="paid" min="0" step="1" required value="${s.pkg.paid||0}"></div>
+        <div class="field"><label for="bdu">Payment due date</label><input type="date" id="bdu" name="due" value="${s.pkg.due||""}"></div>
+        <div class="field"><label for="bex">Package valid until</label><input type="date" id="bex" name="expires" value="${s.pkg.expires||""}"></div>
+      </div>
+      <button class="btn btn-primary">Save payment details</button>
+    </form></div>
   <h2 class="section-title">Courses</h2><div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
   <h2 class="section-title">Assignments</h2><div class="card">${assignFor(id).length?`<div class="list">${assignFor(id).map(a=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a></h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">No assignments yet.</p>`}</div>
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 class="section-title">Session notes</h2><a class="btn btn-primary btn-sm" href="#/log/${id}">Log a session</a></div>
@@ -718,6 +767,9 @@ document.addEventListener("submit", e => {
     const mail = d.emailParent && email;
     toast(`Note saved · ${remaining(s)} sessions left for ${s.name.split(" ")[0]}${mail?" · opening email to "+s.parent.split(" ")[0]:d.emailParent?" · add a parent email to send notes":""}`);
     location.hash = "#/student/"+s.id; if(mail) location.href = noteMailto(n, email); }
+  if(kind==="billing"){ const s = stu(f.dataset.id);
+    Object.assign(s.pkg, {price:Math.max(0,Number(d.price)||0), paid:Math.max(0,Number(d.paid)||0), due:d.due||"", expires:d.expires||""}); save();
+    const b = billing(s); toast(b.owed ? `Saved · ${money(b.owed)} balance for ${s.parent.split(" ")[0]}` : "Saved · paid in full"); render(); }
   if(kind==="assign"){ S.assignments.push({id:uid("as"),student:d.student,course:d.course,title:d.title.trim(),due:d.due,instructions:d.instructions.trim(),status:"assigned"});
     const s = stu(d.student); if(!s.courses.includes(d.course)) s.courses.push(d.course); save(); toast("Assignment sent to "+s.name.split(" ")[0]); render(); }
   if(kind==="session"){ S.sessions.push({id:uid("ss"),student:d.student,date:d.date,time:d.time,subject:d.subject.trim(),service:d.service,mode:d.mode}); save(); toast("Session scheduled"); render(); }
