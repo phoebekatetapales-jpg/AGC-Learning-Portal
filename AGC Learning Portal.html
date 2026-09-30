@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AGC Learning Portal — AGC Tutorials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B2545; --gold:#C59B4E; --cream:#F9F7F2; --tan:#D1C2A5;
+  --bg:#F9F7F2; --surface:#FFFFFF; --surface-2:#F2EDE2; --ink:#0B2545; --ink-soft:#3B4A61;
+  --gold-text:#8A6424; --line:#D1C2A5; --btn-bg:#0B2545; --btn-ink:#F9F7F2; --plate:#F6F0E4;
+  --side:#0B2545; --side-ink:#E9EDF3; --side-soft:#9FB0C6; --step-empty:#E7DFCE;
+  --ok:#2F6B4F; --warn:#9A5B12;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#07182E; --surface:#0E2744; --surface-2:#0B213B; --ink:#F3EEE3; --ink-soft:#C3CBD8;
+    --gold-text:#D9B36B; --line:#2B4466; --btn-bg:#C59B4E; --btn-ink:#0B2545;
+    --side:#081C35; --side-ink:#E9EDF3; --side-soft:#8FA2BC; --step-empty:#1D3656; --ok:#7CC4A0; --warn:#E3A85A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#07182E; --surface:#0E2744; --surface-2:#0B213B; --ink:#F3EEE3; --ink-soft:#C3CBD8;
+  --gold-text:#D9B36B; --line:#2B4466; --btn-bg:#C59B4E; --btn-ink:#0B2545;
+  --side:#081C35; --side-ink:#E9EDF3; --side-soft:#8FA2BC; --step-empty:#1D3656; --ok:#7CC4A0; --warn:#E3A85A;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;line-height:1.2;margin:0;letter-spacing:-.01em}
+p{margin:0 0 .9em}
+a{color:inherit}
+img{max-width:100%;display:block}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- Login ---------- */
+.login{min-height:100%;display:grid;place-items:center;padding:40px 20px;position:relative;overflow:hidden}
+.login::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:88px 88px;mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 75%)}
+.login-card{position:relative;width:min(760px,100%)}
+.login-logo{background:var(--plate);border-radius:10px;padding:10px 16px;width:max-content;margin:0 auto 28px}
+.login-logo img{height:64px;width:auto}
+.login h1{text-align:center;font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:8px}
+.login .sub{text-align:center;color:var(--ink-soft);margin-bottom:32px}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.role{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px 20px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,transform .15s}
+.role:hover{border-color:var(--gold);transform:translateY(-2px)}
+.role b{font-family:var(--display);font-size:1.1rem}
+.role span{font-size:.93rem;color:var(--ink-soft)}
+.role em{font-family:var(--display);font-style:normal;font-size:.85rem;color:var(--gold-text);margin-top:6px}
+.login .foot{text-align:center;font-family:var(--display);font-size:.85rem;color:var(--ink-soft);margin-top:26px}
+@media (max-width:680px){.roles{grid-template-columns:1fr}}
+
+/* ---------- Shell ---------- */
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100%}
+.side{background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;padding:20px 16px}
+.side .logo{background:var(--plate);border-radius:8px;padding:6px 10px;margin:0 4px 26px}
+.side .logo img{height:40px;width:auto}
+.side nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.side nav a{font-family:var(--display);font-size:.95rem;text-decoration:none;color:var(--side-soft);padding:10px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center}
+.side nav a:hover{color:var(--side-ink);background:rgba(255,255,255,.06)}
+.side nav a[aria-current="page"]{color:var(--side-ink);background:rgba(197,155,78,.16);box-shadow:inset 3px 0 0 var(--gold)}
+.pill{background:var(--gold);color:#0B2545;font-size:.75rem;font-weight:600;border-radius:999px;padding:1px 8px}
+.who{border-top:1px solid rgba(255,255,255,.1);padding:16px 6px 0;font-family:var(--display)}
+.who b{display:block;font-weight:500;font-size:.95rem}
+.who span{font-size:.82rem;color:var(--side-soft)}
+.who button{margin-top:12px;background:none;border:1px solid rgba(255,255,255,.2);color:var(--side-ink);border-radius:8px;padding:7px 12px;font-family:var(--display);font-size:.85rem;cursor:pointer}
+.who button:hover{border-color:var(--gold)}
+.topbar{display:none}
+.scrim{display:none}
+.side{grid-column:1;grid-row:1}
+main{grid-column:2;grid-row:1}
+main{padding:clamp(22px,4vw,44px) clamp(18px,4vw,48px) 60px;min-width:0}
+.page{max-width:1080px}
+@media (max-width:880px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  main{grid-column:1;grid-row:2}
+  .side{position:fixed;inset:0 auto 0 0;width:min(280px,85%);z-index:50;transform:translateX(-100%);transition:transform .25s;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+  .side.open{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(5,16,32,.5);z-index:40;display:none}
+  .scrim.show{display:block}
+  .topbar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30;background:var(--side);color:var(--side-ink);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+  .topbar button{background:none;border:1px solid rgba(255,255,255,.25);color:var(--side-ink);border-radius:8px;padding:6px 12px;font-family:var(--display);cursor:pointer}
+  .topbar b{font-family:var(--display);font-weight:500}
+}
+
+/* ---------- Page elements ---------- */
+.head{margin-bottom:28px}
+.head h1{font-size:clamp(1.6rem,3.4vw,2.3rem)}
+.head p{color:var(--ink-soft);margin:6px 0 0;max-width:62ch}
+.crumb{font-family:var(--display);font-size:.88rem;color:var(--gold-text);text-decoration:none;display:inline-block;margin-bottom:10px}
+.crumb:hover{text-decoration:underline}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:980px){.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px}
+.card h2{font-size:1.1rem;margin-bottom:14px}
+.card h3{font-size:1.05rem}
+.muted{color:var(--ink-soft)}
+.small{font-size:.9rem}
+.label{font-family:var(--display);font-size:.85rem;color:var(--ink-soft)}
+.big{font-family:var(--display);font-size:2.2rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.big small{font-size:1rem;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+.hero-card{background:var(--navy);color:#F3EEE3;border-color:var(--navy)}
+.hero-card .label,.hero-card .muted,.hero-card .big small{color:#B9C4D4}
+:root[data-theme="dark"] .hero-card{border-color:var(--gold)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hero-card{border-color:var(--gold)}}
+.bar{height:8px;background:var(--step-empty);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:99px}
+.hero-card .bar{background:rgba(255,255,255,.14)}
+.section-title{font-family:var(--display);font-size:1.15rem;font-weight:600;margin:36px 0 14px}
+.list{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0;padding-top:0}
+.row:last-child{padding-bottom:0}
+.row h4{font-size:.98rem;font-weight:500}
+.row .meta{font-family:var(--display);font-size:.84rem;color:var(--ink-soft)}
+.tag{font-family:var(--display);font-size:.78rem;font-weight:500;border-radius:6px;padding:3px 9px;white-space:nowrap;border:1px solid var(--line);color:var(--ink-soft)}
+.tag.gold{background:var(--gold);border-color:var(--gold);color:#0B2545}
+.tag.ok{color:var(--ok);border-color:currentColor}
+.tag.warn{color:var(--warn);border-color:currentColor}
+.btn{font-family:var(--display);font-weight:500;font-size:.95rem;border-radius:8px;padding:10px 18px;cursor:pointer;border:2px solid transparent;text-decoration:none;display:inline-block;text-align:center}
+.btn-primary{background:var(--btn-bg);color:var(--btn-ink)}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-ghost{background:transparent;border-color:var(--gold);color:var(--ink)}
+.btn-ghost:hover{background:var(--gold);color:#0B2545}
+.btn-sm{padding:6px 12px;font-size:.86rem}
+.linkish{font-family:var(--display);font-size:.9rem;color:var(--gold-text);text-decoration:none;font-weight:500}
+.linkish:hover{text-decoration:underline}
+.empty{padding:26px;text-align:center;color:var(--ink-soft);border:1px dashed var(--line);border-radius:12px}
+
+/* Staircase progress meter (signature) */
+.stairs{display:flex;align-items:flex-end;gap:3px;height:34px}
+.stairs i{flex:1;min-width:6px;background:var(--step-empty);border-radius:2px 2px 0 0}
+.stairs i.on{background:var(--gold)}
+.hero-card .stairs i{background:rgba(255,255,255,.14)}
+.hero-card .stairs i.on{background:var(--gold)}
+.stairs.lg{height:56px;gap:4px}
+
+/* Courses */
+.course{display:flex;flex-direction:column;gap:10px;text-decoration:none;transition:border-color .15s}
+.course:hover{border-color:var(--gold)}
+.course .svc{font-family:var(--display);font-size:.82rem;color:var(--gold-text);font-weight:500}
+.course h3{font-size:1.2rem}
+.course .foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-size:.86rem;color:var(--ink-soft)}
+.module{margin-bottom:22px}
+.module h3{font-size:1rem;margin-bottom:10px;color:var(--ink-soft);font-weight:500}
+.lesson{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;text-decoration:none}
+.lesson:hover{border-color:var(--gold)}
+.check{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:.8rem;color:#0B2545}
+.check.on{background:var(--gold);border-color:var(--gold)}
+.lesson b{font-family:var(--display);font-weight:500;flex:1}
+.lesson span{font-family:var(--display);font-size:.84rem;color:var(--ink-soft);text-align:right;max-width:42%}
+.lesson b{min-width:0}
+.reader{max-width:70ch}
+.reader .body p{font-size:1.06rem;line-height:1.8}
+.keys{background:var(--surface-2);border-left:4px solid var(--gold);border-radius:0 10px 10px 0;padding:16px 20px;margin:22px 0}
+.keys h3{font-size:.98rem;margin-bottom:8px}
+.keys ul{margin:0;padding-left:1.2em}
+.keys li{margin:4px 0}
+.try{border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:26px;background:var(--surface)}
+.try h3{font-size:.98rem;margin-bottom:6px}
+.pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:20px}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-family:var(--display);font-size:.88rem;font-weight:500}
+input[type=text],input[type=email],input[type=date],input[type=time],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+textarea{min-height:110px;resize:vertical;line-height:1.55}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
+.form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+@media (max-width:600px){.form-row{grid-template-columns:1fr}}
+
+/* Quiz */
+.q{margin-bottom:18px}
+.q legend{font-family:var(--display);font-weight:500;margin-bottom:10px;padding:0}
+.q fieldset{border:0;padding:0;margin:0}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--bg)}
+.opt:hover{border-color:var(--gold)}
+.opt input{accent-color:var(--navy)}
+.opt.right{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok)}
+.opt.wrong{border-color:var(--warn);box-shadow:inset 3px 0 0 var(--warn)}
+.score{display:flex;align-items:center;gap:20px;margin-bottom:20px}
+
+/* Notes */
+.note{border-left:4px solid var(--gold)}
+.note .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.note h3{font-size:1.05rem}
+.note .next{background:var(--surface-2);border-radius:8px;padding:10px 14px;font-size:.95rem;margin-top:6px}
+.note .next b{font-family:var(--display);font-weight:500}
+
+/* Schedule */
+.date{width:58px;flex:none;text-align:center;border:1px solid var(--line);border-radius:10px;padding:6px 0;font-family:var(--display);background:var(--surface-2)}
+.date b{display:block;font-size:1.3rem;line-height:1.1}
+.date span{font-size:.75rem;color:var(--ink-soft)}
+.srow{display:flex;gap:14px;align-items:center;flex:1;min-width:0}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:var(--navy);color:#F3EEE3;font-family:var(--display);padding:12px 18px;border-radius:8px;border:1px solid var(--gold);opacity:0;transition:.25s;z-index:90;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.table-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const LOGO = "data:image/jpeg;base64,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";
+const KEY = "agc-lms-v1", ME_KEY = "agc-lms-me";
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const dayOffset = n => { const d = new Date(); d.setDate(d.getDate()+n); return iso(d); };
+const today = () => iso(new Date());
+const parse = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y,m-1,d); };
+const fmt = s => parse(s).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+const fmtLong = s => parse(s).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+const fmtTime = t => { if(!t) return ""; let [h,m]=t.split(":").map(Number); const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+pad(m)+" "+ap; };
+const daysUntil = s => Math.round((parse(s) - parse(today()))/86400000);
+const uid = p => p + Math.random().toString(36).slice(2,8);
+function dueLabel(s){ const n=daysUntil(s); if(n<0) return {t:Math.abs(n)+" day"+(n===-1?"":"s")+" overdue",c:"warn"}; if(n===0) return {t:"Due today",c:"warn"}; if(n===1) return {t:"Due tomorrow",c:"gold"}; return {t:"Due "+fmt(s),c:""}; }
+let toastT; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
+
+/* ---------- seed data ---------- */
+function L(id,title,mins,body,keys,example){ return {id,title,mins,body,keys,example}; }
+function seed(){
+  const courses = {
+    alg1:{id:"alg1",title:"Algebra I",service:"AGC Core Tutoring",subject:"Math",level:"Middle & High School",
+      blurb:"Build fluency with expressions, equations and linear relationships.",
+      modules:[
+        {title:"Expressions & equations",lessons:[
+          L("a1","Variables and expressions",20,["A variable is a letter that stands for a number we don't know yet. An expression combines numbers, variables and operations, such as 3x + 5. Because an expression has no equals sign, we simplify or evaluate it rather than solve it.","To evaluate an expression, replace the variable with its value and follow the order of operations."],["An expression has no equals sign","Like terms share the same variable and power","Order of operations: parentheses, exponents, multiply and divide, add and subtract"],"Evaluate 3x + 5 when x = 4: 3(4) + 5 = 12 + 5 = 17."),
+          L("a2","Solving one-step equations",20,["An equation says that two expressions are equal. To solve it, isolate the variable by applying the inverse operation to both sides.","Addition undoes subtraction, and multiplication undoes division. Whatever you do to one side, you must do to the other."],["Keep the equation balanced","Use the inverse operation","Check by substituting your answer back in"],"x − 7 = 12 → add 7 to both sides → x = 19. Check: 19 − 7 = 12 ✓"),
+          L("a3","Solving two-step equations",25,["Two-step equations need two inverse operations. Undo addition or subtraction first, then undo multiplication or division.","Writing each step on its own line makes mistakes easy to spot."],["Undo + and − first","Then undo × and ÷","One step per line"],"2x + 3 = 11 → subtract 3: 2x = 8 → divide by 2: x = 4.")]},
+        {title:"Linear relationships",lessons:[
+          L("a4","Slope as rate of change",25,["Slope measures how much y changes for each 1-unit change in x. We often describe it as rise over run.","A positive slope rises from left to right; a negative slope falls."],["Slope = (y₂ − y₁) ÷ (x₂ − x₁)","Positive slopes rise, negative slopes fall","A horizontal line has slope 0"],"Through (1, 2) and (3, 8): slope = (8 − 2) ÷ (3 − 1) = 6 ÷ 2 = 3."),
+          L("a5","Graphing y = mx + b",25,["In slope-intercept form, m is the slope and b is the y-intercept, the point where the line crosses the y-axis.","Plot the y-intercept first, then use the slope to find a second point."],["m = slope","b = y-intercept","Start at (0, b), then rise and run"],"y = 2x + 1: start at (0, 1), go up 2 and right 1 to reach (1, 3).")]}
+      ]},
+    read:{id:"read",title:"Reading Foundations",service:"AGC Core Tutoring",subject:"Reading",level:"Elementary & Phonics",
+      blurb:"Decode words with confidence and understand what you read.",
+      modules:[
+        {title:"Phonics",lessons:[
+          L("r1","Closed syllables",15,["A closed syllable ends with a consonant, which 'closes in' the vowel and usually makes it short.","Words like cat, rab-bit and nap-kin are built from closed syllables."],["Ends in a consonant","The vowel is usually short","Split between two consonants: rab | bit"],"Tap out 'napkin': nap (short a) + kin (short i)."),
+          L("r2","Vowel teams",20,["A vowel team is two letters that work together to make one vowel sound, such as ai, ay, ee, ea and oa.","Learning the common teams helps you read longer words smoothly."],["ai / ay say long a (rain, play)","ee / ea often say long e (feet, team)","oa says long o (boat)"],"Read: rain, stay, sheep, beach, coat.")]},
+        {title:"Comprehension",lessons:[
+          L("r3","Finding the main idea",20,["The main idea is what a whole paragraph is mostly about. The details support it.","Ask: if I had to explain this paragraph in one sentence, what would I say?"],["Look for what the details have in common","The main idea isn't always the first sentence","Say it in your own words"],"Details: bees carry pollen, bees make honey, bees help crops grow → Main idea: bees are important to people and plants."),
+          L("r4","Making inferences",20,["An inference is a smart guess that combines clues from the text with what you already know.","Authors don't always say everything directly, so good readers fill in the gaps."],["Text clues + what I know = inference","Point to the clue that supports it","Inferences can be revised"],"'Ella grabbed her umbrella and frowned at the sky.' → It is probably about to rain.")]}
+      ]},
+    asc:{id:"asc",title:"Executive Functioning Essentials",service:"AGC Ascent Coaching",subject:"Coaching",level:"All grades",
+      blurb:"Organize your week, start tasks with less stress, and stay calm under pressure.",
+      modules:[
+        {title:"Organize",lessons:[
+          L("e1","Building a weekly planner",20,["A weekly planner turns a busy week into something you can see. When everything is on one page, it's easier to decide what comes first.","Start by writing in fixed commitments: school, practice, tutoring. Then add homework and study blocks in the gaps."],["Fixed commitments go in first","Give each subject a color","Review the planner every Sunday"],"Sunday: write in soccer (Tue/Thu), tutoring (Wed), then two 30-minute study blocks for the science test."),
+          L("e2","Breaking big tasks into steps",20,["Big assignments feel overwhelming because the first step isn't clear. Breaking them into small, specific steps makes each one feel doable.","A good step starts with a verb and takes less than 30 minutes."],["Start each step with a verb","Keep steps under 30 minutes","Put a date next to each step"],"Book report → choose book, read chapters 1–4, write a summary, draft the intro, finish the draft, proofread.")]},
+        {title:"Focus & calm",lessons:[
+          L("e3","Starting when it feels hard",15,["Task initiation is the skill of getting started. Most people find starting harder than continuing.","Try the five-minute start: commit to working for just five minutes, then decide whether to keep going."],["Make the first step tiny","Set a five-minute timer","Clear your workspace first"],"Instead of 'study for math', start with 'open notebook and redo problem 1'."),
+          L("e4","Managing test anxiety",20,["Some nervousness before a test is normal and can even help you focus. When it becomes overwhelming, a few simple tools can bring it back down.","Box breathing slows your heart rate: breathe in for 4, hold for 4, out for 4, hold for 4."],["Prepare early with short sessions","Use box breathing (4-4-4-4)","Start with a question you know"],"Before the test: three rounds of box breathing, then skim the whole test and circle two questions you know.")]}
+      ]},
+    chem:{id:"chem",title:"Chemistry",service:"AGC Core Tutoring",subject:"Science",level:"High School",
+      blurb:"Understand atoms, bonding and chemical reactions from the ground up.",
+      modules:[{title:"Foundations",lessons:[
+        L("c1","Atoms and the periodic table",25,["Atoms are made of protons, neutrons and electrons. The number of protons defines the element.","The periodic table is organized so that elements in the same column share similar chemical properties."],["Protons (+), neutrons (0), electrons (−)","Atomic number = number of protons","Columns are groups with similar properties"],"Carbon has atomic number 6, so every carbon atom has 6 protons."),
+        L("c2","Chemical bonds",25,["Atoms bond to become more stable. In ionic bonds, electrons are transferred; in covalent bonds, electrons are shared.","Metals and nonmetals tend to form ionic bonds, while nonmetals together form covalent bonds."],["Ionic: electrons transferred","Covalent: electrons shared","Bonding leads to stability"],"NaCl (table salt) is ionic; H₂O (water) is covalent."),
+        L("c3","Balancing chemical equations",30,["Matter is conserved, so the number of each type of atom must be the same on both sides of an equation.","Change coefficients (the big numbers in front), never the subscripts."],["Count atoms on each side","Adjust coefficients only","Check every element at the end"],"H₂ + O₂ → H₂O becomes 2H₂ + O₂ → 2H₂O.")]}]},
+    alg2:{id:"alg2",title:"Algebra II",service:"AGC Core Tutoring",subject:"Math",level:"High School",
+      blurb:"Master quadratics, factoring and the tools for advanced math.",
+      modules:[{title:"Quadratics",lessons:[
+        L("b1","Quadratic functions",25,["A quadratic function has the form y = ax² + bx + c, and its graph is a U-shaped curve called a parabola.","If a is positive the parabola opens up; if negative it opens down."],["Graph is a parabola","a > 0 opens up, a < 0 opens down","The vertex is the turning point"],"y = x² − 4 opens up with vertex at (0, −4)."),
+        L("b2","Factoring quadratics",30,["Factoring rewrites a quadratic as a product of two binomials. For x² + bx + c, find two numbers that multiply to c and add to b.","Factoring lets you find where the parabola crosses the x-axis."],["Multiply to c, add to b","Check by expanding","Set each factor to zero to solve"],"x² + 5x + 6 = (x + 2)(x + 3), so x = −2 or x = −3."),
+        L("b3","The quadratic formula",30,["When a quadratic doesn't factor neatly, the quadratic formula always works: x = (−b ± √(b² − 4ac)) ÷ 2a.","The expression under the square root, the discriminant, tells you how many real solutions there are."],["Identify a, b and c first","Discriminant > 0: two solutions","Discriminant < 0: no real solutions"],"x² − 2x − 3 = 0: a=1, b=−2, c=−3 → x = (2 ± 4) ÷ 2 → x = 3 or x = −1.")]}]}
+  };
+  const quizzes = {
+    "qz-alg1":{id:"qz-alg1",course:"alg1",title:"Algebra I diagnostic",questions:[
+      {q:"Evaluate 4x − 3 when x = 5.",o:["17","20","23","12"],a:0},
+      {q:"Solve: x + 9 = 15",o:["24","6","−6","9/15"],a:1},
+      {q:"Solve: 3x − 4 = 11",o:["5","7/3","15","3"],a:0},
+      {q:"What is the slope of the line through (0, 1) and (2, 7)?",o:["3","4","6","1/3"],a:0},
+      {q:"In y = −2x + 5, where does the line cross the y-axis?",o:["(0, 5)","(5, 0)","(0, −2)","(−2, 5)"],a:0}]},
+    "qz-read":{id:"qz-read",course:"read",title:"Reading skills check",questions:[
+      {q:"Which word is a closed syllable?",o:["hat","he","go","me"],a:0},
+      {q:"Which letters form the vowel team in 'boat'?",o:["oa","bo","at","ot"],a:0},
+      {q:"The main idea of a paragraph is…",o:["What the whole paragraph is mostly about","Always the first sentence","The most interesting detail","The title of the book"],a:0},
+      {q:"An inference combines clues from the text with…",o:["What you already know","The author's name","The page number","A dictionary definition"],a:0}]},
+    "qz-chem":{id:"qz-chem",course:"chem",title:"Chemistry foundations check",questions:[
+      {q:"Which particle has a negative charge?",o:["Proton","Electron","Neutron","Nucleus"],a:1},
+      {q:"Elements in the same column of the periodic table share…",o:["Similar chemical properties","The same mass","The same number of neutrons","The same state of matter"],a:0},
+      {q:"Balance H₂ + O₂ → H₂O. What is the coefficient of H₂O?",o:["1","2","3","4"],a:1},
+      {q:"A bond in which electrons are shared is called…",o:["Ionic","Metallic","Covalent","Magnetic"],a:2}]},
+    "qz-alg2":{id:"qz-alg2",course:"alg2",title:"Quadratics check",questions:[
+      {q:"Which way does y = −x² + 3 open?",o:["Up","Down","Left","Right"],a:1},
+      {q:"Factor x² + 7x + 12.",o:["(x + 3)(x + 4)","(x + 2)(x + 6)","(x + 1)(x + 12)","(x − 3)(x − 4)"],a:0},
+      {q:"If the discriminant is negative, the equation has…",o:["Two real solutions","One real solution","No real solutions","Infinitely many solutions"],a:2}]}
+  };
+  const T = "Rochelle Concepcion";
+  return {
+    tutor:T,
+    courses, quizzes,
+    students:[
+      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",pkg:{name:"Momentum Growth Pack",total:16,used:9},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
+      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",pkg:{name:"Sprint Growth Pack",total:8,used:6},courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
+      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",pkg:{name:"Flex Aspire Pass",total:2,used:1},courses:["read"],done:["r1"]}
+    ],
+    assignments:[
+      {id:"as1",student:"s1",course:"alg1",title:"Two-step equations practice",due:dayOffset(3),status:"assigned",instructions:"Solve the five equations on your worksheet and show every step on its own line. Then write one sentence explaining which operation you undo first and why."},
+      {id:"as2",student:"s1",course:"read",title:"Main idea paragraph",due:dayOffset(-4),status:"graded",instructions:"Read the article about honeybees and write the main idea in one sentence, followed by three supporting details.",submission:"Main idea: Honeybees are important because they help plants grow. Details: they carry pollen between flowers, they make honey, and farmers need them for crops like almonds.",grade:"A",feedback:"Excellent, Maya! Your main idea is clear and every detail supports it. Next time, try putting the main idea in your own words even more."},
+      {id:"as3",student:"s1",course:"asc",title:"My weekly planner",due:dayOffset(6),status:"assigned",instructions:"Fill in next week's planner: fixed commitments first, then homework and two study blocks. Bring a photo or the paper copy to your next Ascent session."},
+      {id:"as4",student:"s2",course:"chem",title:"Balancing equations set",due:dayOffset(-1),status:"submitted",instructions:"Balance the eight equations on the worksheet. Circle any you found tricky.",submission:"1) 2H₂ + O₂ → 2H₂O  2) N₂ + 3H₂ → 2NH₃  3) CH₄ + 2O₂ → CO₂ + 2H₂O … I found #6 tricky because of the oxygen on both sides."},
+      {id:"as5",student:"s2",course:"alg2",title:"Graph three parabolas",due:dayOffset(5),status:"assigned",instructions:"Graph y = x², y = −x² + 4 and y = (x − 2)². Label each vertex and say which way it opens."},
+      {id:"as6",student:"s3",course:"read",title:"Vowel team word hunt",due:dayOffset(2),status:"assigned",instructions:"Find 10 words with vowel teams in your favorite book. Write each word and underline the vowel team."}
+    ],
+    results:[
+      {id:uid("r"),student:"s1",quiz:"qz-read",score:3,total:4,date:dayOffset(-10)},
+      {id:uid("r"),student:"s2",quiz:"qz-chem",score:4,total:4,date:dayOffset(-6)}
+    ],
+    notes:[
+      {id:"n1",student:"s1",date:dayOffset(-2),service:"AGC Core Tutoring",mode:"In-home",focus:"Algebra I: two-step equations",summary:"Maya solved 8 of 10 two-step equations independently. She's confident undoing addition first; equations with negative coefficients still slow her down.",next:"Practice five equations with negative coefficients before the next session."},
+      {id:"n2",student:"s1",date:dayOffset(-7),service:"AGC Ascent Coaching",mode:"AGC Anywhere",focus:"Weekly planning",summary:"We built a color-coded weekly planner together. Maya identified Tuesday evenings as her most overloaded time and moved one study block to Monday.",next:"Fill in the planner every Sunday and bring it to the next Ascent session."},
+      {id:"n3",student:"s1",date:dayOffset(-12),service:"AGC Core Tutoring",mode:"In-home",focus:"Reading: vowel teams",summary:"Strong progress decoding ai/ay and ee/ea words. Oral reading fluency rose from 88 to 97 words per minute on a grade-level passage.",next:"Read aloud for 10 minutes a day; mark any vowel-team words that are tricky."},
+      {id:"n4",student:"s2",date:dayOffset(-3),service:"AGC Core Tutoring",mode:"Public library",focus:"Chemistry: balancing equations",summary:"Ethan balanced combustion reactions with support and is now counting atoms systematically. He rushes the final check.",next:"Finish the balancing set and check every element before submitting."},
+      {id:"n5",student:"s2",date:dayOffset(-9),service:"AGC Ascent Coaching",mode:"AGC Anywhere",focus:"Breaking down the lab report",summary:"We split the chemistry lab report into six dated steps. Ethan felt much less stressed once he could see the whole plan.",next:"Complete steps 1–3 by Friday."},
+      {id:"n6",student:"s3",date:dayOffset(-5),service:"AGC Core Tutoring",mode:"In-home",focus:"Phonics: closed syllables",summary:"Sofia read 18 of 20 closed-syllable words correctly and began splitting two-syllable words on her own. Very positive session!",next:"Practice the word cards with a parent three times this week."}
+    ],
+    sessions:[
+      {id:"ss1",student:"s1",date:dayOffset(2),time:"16:00",subject:"Algebra I",service:"AGC Core Tutoring",mode:"In-home"},
+      {id:"ss2",student:"s1",date:dayOffset(5),time:"17:00",subject:"Executive functioning",service:"AGC Ascent Coaching",mode:"AGC Anywhere"},
+      {id:"ss3",student:"s2",date:dayOffset(1),time:"15:30",subject:"Chemistry",service:"AGC Core Tutoring",mode:"Public library"},
+      {id:"ss4",student:"s2",date:dayOffset(4),time:"16:30",subject:"Algebra II",service:"AGC Core Tutoring",mode:"AGC Anywhere"},
+      {id:"ss5",student:"s3",date:dayOffset(3),time:"14:00",subject:"Reading",service:"AGC Core Tutoring",mode:"In-home"}
+    ]
+  };
+}
+
+let S, ME;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch(e) { S = null; }
+if(!S || !S.students) S = seed();
+{ const base = seed(); S.students.forEach(s => { if(s.parentEmail==null){ const b = base.students.find(x=>x.id===s.id); s.parentEmail = b ? b.parentEmail : ""; } }); }
+try { ME = JSON.parse(localStorage.getItem(ME_KEY)); } catch(e) { ME = null; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function saveMe(){ try{ ME ? localStorage.setItem(ME_KEY, JSON.stringify(ME)) : localStorage.removeItem(ME_KEY); }catch(e){} }
+
+/* ---------- data helpers ---------- */
+const stu = id => S.students.find(s => s.id === id);
+const lessonsOf = c => c.modules.flatMap(m => m.lessons);
+const courseProgress = (s, cid) => { const ls = lessonsOf(S.courses[cid]); const d = ls.filter(l => s.done.includes(l.id)).length; return {done:d,total:ls.length}; };
+const overall = s => s.courses.reduce((a,c)=>{const p=courseProgress(s,c);a.done+=p.done;a.total+=p.total;return a},{done:0,total:0});
+const remaining = s => Math.max(0, s.pkg.total - s.pkg.used);
+const upcoming = sid => S.sessions.filter(x => (!sid || x.student===sid) && daysUntil(x.date) >= 0).sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+const notesFor = sid => S.notes.filter(n => !sid || n.student===sid).sort((a,b)=>b.date.localeCompare(a.date));
+const assignFor = sid => S.assignments.filter(a => a.student===sid);
+const nextLesson = (s, cid) => lessonsOf(S.courses[cid]).find(l => !s.done.includes(l.id));
+function currentStudent(){ return ME && (ME.role==="student"||ME.role==="parent") ? stu(ME.student) : null; }
+
+/* ---------- components ---------- */
+function stairs(done,total,lg){
+  const n = Math.max(1, Math.min(total, 12)); const filled = total ? Math.round(done/total*n) : 0;
+  let h=""; for(let i=0;i<n;i++){ const ht = 28 + (72*(i+1)/n); h += `<i class="${i<filled?"on":""}" style="height:${ht}%"></i>`; }
+  return `<div class="stairs${lg?" lg":""}" role="img" aria-label="${done} of ${total} lessons complete">${h}</div>`;
+}
+function balanceCard(s, hero){
+  const r = remaining(s), pct = s.pkg.total ? s.pkg.used/s.pkg.total*100 : 0;
+  return `<div class="card ${hero?"hero-card":""}">
+    <div class="label">Session balance</div>
+    <div class="big">${r} <small>of ${s.pkg.total} sessions left</small></div>
+    <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    <div class="small muted">${esc(s.pkg.name)} · ${s.pkg.used} used</div>
+    ${r<=2?`<p class="small" style="margin:10px 0 0;color:${hero?"#E6C27E":"var(--warn)"}">${r===0?"No sessions left.":"Running low."} Renew a package to keep your schedule.</p>`:""}
+  </div>`;
+}
+function nextSessionCard(sid){
+  const n = upcoming(sid)[0];
+  if(!n) return `<div class="card"><div class="label">Next session</div><p class="muted" style="margin:8px 0 0">Nothing scheduled yet.</p></div>`;
+  const d = daysUntil(n.date);
+  return `<div class="card"><div class="label">Next session</div>
+    <div class="big" style="font-size:1.6rem;margin-top:4px">${d===0?"Today":d===1?"Tomorrow":fmt(n.date)} <small>${fmtTime(n.time)}</small></div>
+    <p style="margin:8px 0 0">${esc(n.subject)}</p><div class="small muted">${esc(n.service)} · ${esc(n.mode)}</div></div>`;
+}
+function noteMailto(n, to){
+  const s = stu(n.student); const first = s.name.split(" ")[0];
+  const body = [`Hi ${s.parent.split(" ")[0]},`,"",`Here are the notes from ${first}'s session on ${fmtLong(n.date)}.`,"",
+    `Service: ${n.service} · ${n.mode}`,`Focus: ${n.focus}`,"","What we worked on:",n.summary,
+    ...(n.next?["","Next steps:",n.next]:[]),"",`Sessions remaining: ${remaining(s)} of ${s.pkg.total} (${s.pkg.name})`,"","Thank you,",S.tutor,"AGC Tutorials"].join("\n");
+  return `mailto:${encodeURIComponent(to||s.parentEmail||"").replace(/%40/g,"@")}?subject=${encodeURIComponent(`Session notes: ${s.name} · ${fmtLong(n.date)}`)}&body=${encodeURIComponent(body)}`;
+}
+function noteCard(n, showStudent){
+  const s = stu(n.student);
+  return `<article class="card note">
+    <div class="top"><div><h3>${esc(n.focus)}</h3><div class="label">${fmtLong(n.date)}${showStudent?" · "+esc(s?.name):""}</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">${esc(n.service)}</span><span class="tag">${esc(n.mode)}</span></div></div>
+    <p>${esc(n.summary)}</p>
+    ${n.next?`<div class="next"><b>Next steps:</b> ${esc(n.next)}</div>`:""}
+    ${ME?.role==="tutor"?`<div style="margin-top:12px"><a class="btn btn-ghost btn-sm" href="${esc(noteMailto(n))}">Email to ${esc(s.parent.split(" ")[0])}</a></div>`:""}
+  </article>`;
+}
+function sessionRow(x, showStudent){
+  const p = parse(x.date);
+  return `<div class="row"><div class="srow"><div class="date"><b>${p.getDate()}</b><span>${p.toLocaleDateString("en-US",{month:"short"})}</span></div>
+    <div><h4>${esc(x.subject)}${showStudent?" · "+esc(stu(x.student)?.name):""}</h4><div class="meta">${p.toLocaleDateString("en-US",{weekday:"long"})}, ${fmtTime(x.time)} · ${esc(x.service)}</div></div></div>
+    <span class="tag ${x.mode==="AGC Anywhere"?"gold":""}">${esc(x.mode)}</span></div>`;
+}
+function statusTag(a){
+  if(a.status==="graded") return `<span class="tag ok">Graded: ${esc(a.grade)}</span>`;
+  if(a.status==="submitted") return `<span class="tag">Submitted</span>`;
+  const d = dueLabel(a.due); return `<span class="tag ${d.c}">${d.t}</span>`;
+}
+function courseCard(s, cid, link){
+  const c = S.courses[cid], p = courseProgress(s,cid);
+  const inner = `<span class="svc">${esc(c.service)}</span><h3>${esc(c.title)}</h3><p class="small muted" style="margin:0">${esc(c.blurb)}</p>
+    ${stairs(p.done,p.total)}<div class="foot"><span>${p.done} of ${p.total} lessons</span><span>${p.total?Math.round(p.done/p.total*100):0}%</span></div>`;
+  return link ? `<a class="card course" href="#/course/${cid}">${inner}</a>` : `<div class="card course">${inner}</div>`;
+}
+const empty = m => `<div class="empty">${m}</div>`;
+
+/* ---------- views: student ---------- */
+function greeting(){ const h=new Date().getHours(); return h<12?"Good morning":h<18?"Good afternoon":"Good evening"; }
+const V = {};
+V.dashboard = () => {
+  const s = currentStudent(), o = overall(s);
+  const todo = assignFor(s.id).filter(a=>a.status==="assigned").sort((a,b)=>a.due.localeCompare(b.due));
+  const cont = s.courses.map(cid=>({cid,l:nextLesson(s,cid)})).filter(x=>x.l);
+  const note = notesFor(s.id)[0];
+  return `<div class="head"><h1>${greeting()}, ${esc(s.name.split(" ")[0])}</h1><p>Every step counts. Here's where you are this week.</p></div>
+  <div class="grid g3">
+    <div class="card hero-card"><div class="label">Overall progress</div><div class="big">${o.done} <small>of ${o.total} lessons</small></div>${stairs(o.done,o.total,true)}</div>
+    ${balanceCard(s)}
+    ${nextSessionCard(s.id)}
+  </div>
+  <h2 class="section-title">Continue learning</h2>
+  ${cont.length?`<div class="grid g2">${cont.map(x=>`<a class="lesson" href="#/lesson/${x.cid}/${x.l.id}"><span class="check" aria-hidden="true"></span><b>${esc(x.l.title)}</b><span>${esc(S.courses[x.cid].title)} · ${x.l.mins} min</span></a>`).join("")}</div>`:empty("You've finished every lesson. Amazing work!")}
+  <div class="grid g2" style="margin-top:36px">
+    <div class="card"><h2>Due soon</h2>${todo.length?`<div class="list">${todo.slice(0,4).map(a=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a></h4><div class="meta">${esc(S.courses[a.course].title)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted">You're all caught up.</p>`}</div>
+    <div class="card"><h2>Latest note from your tutor</h2>${note?`<h3>${esc(note.focus)}</h3><div class="label" style="margin-bottom:8px">${fmtLong(note.date)}</div><p class="small">${esc(note.summary)}</p><a class="linkish" href="#/notes">See all session notes</a>`:`<p class="muted">Notes appear here after each session.</p>`}</div>
+  </div>`;
+};
+V.courses = () => {
+  const s = currentStudent();
+  return `<div class="head"><h1>My courses</h1><p>Lessons are built around your diagnostic results, so each one starts where you are.</p></div>
+  <div class="grid g3">${s.courses.map(c=>courseCard(s,c,true)).join("")}</div>`;
+};
+V.course = (cid) => {
+  const c = S.courses[cid]; if(!c) return V.notfound();
+  const s = currentStudent(); const p = s ? courseProgress(s,cid) : null;
+  const back = ME.role==="tutor" ? `<a class="crumb" href="#/library">← Course library</a>` : `<a class="crumb" href="#/courses">← My courses</a>`;
+  return `${back}<div class="head"><h1>${esc(c.title)}</h1><p>${esc(c.service)} · ${esc(c.level)}. ${esc(c.blurb)}</p></div>
+  ${p?`<div class="card" style="margin-bottom:28px;display:flex;gap:24px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px">${stairs(p.done,p.total,true)}</div><div><div class="big">${Math.round(p.done/p.total*100)}%</div><div class="label">${p.done} of ${p.total} lessons complete</div></div></div>`:""}
+  ${c.modules.map((m,i)=>`<div class="module"><h3>Module ${i+1}: ${esc(m.title)}</h3>
+    ${m.lessons.map(l=>{const d=s&&s.done.includes(l.id);return `<a class="lesson" href="#/lesson/${cid}/${l.id}"><span class="check ${d?"on":""}" aria-label="${d?"Complete":"Not started"}">${d?"✓":""}</span><b>${esc(l.title)}</b><span>${l.mins} min</span></a>`}).join("")}
+  </div>`).join("")}`;
+};
+V.lesson = (cid, lid) => {
+  const c = S.courses[cid]; if(!c) return V.notfound();
+  const ls = lessonsOf(c), i = ls.findIndex(l=>l.id===lid), l = ls[i]; if(!l) return V.notfound();
+  const s = ME.role==="student" ? currentStudent() : null; const done = s && s.done.includes(l.id);
+  const prev = ls[i-1], next = ls[i+1];
+  return `<a class="crumb" href="#/course/${cid}">← ${esc(c.title)}</a>
+  <article class="reader">
+    <div class="head"><div class="label">Lesson ${i+1} of ${ls.length} · ${l.mins} min</div><h1 style="margin-top:6px">${esc(l.title)}</h1></div>
+    <div class="body">${l.body.map(p=>`<p>${esc(p)}</p>`).join("")}</div>
+    <div class="keys"><h3>Key ideas</h3><ul>${l.keys.map(k=>`<li>${esc(k)}</li>`).join("")}</ul></div>
+    <div class="try"><h3>Worked example</h3><p style="margin:0">${esc(l.example)}</p></div>
+    <div class="pager">
+      <div>${prev?`<a class="linkish" href="#/lesson/${cid}/${prev.id}">← ${esc(prev.title)}</a>`:""}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        ${s?(done?`<span class="tag ok">Completed ✓</span>`:`<button class="btn btn-primary" data-act="complete" data-cid="${cid}" data-lid="${l.id}" data-next="${next?next.id:""}">Mark complete${next?" & continue":""}</button>`):""}
+        ${next&&(!s||done)?`<a class="btn btn-ghost" href="#/lesson/${cid}/${next.id}">Next: ${esc(next.title)}</a>`:""}
+      </div>
+    </div>
+  </article>`;
+};
+V.assignments = () => {
+  const s = currentStudent(), all = assignFor(s.id);
+  const groups = [["To do",all.filter(a=>a.status==="assigned").sort((a,b)=>a.due.localeCompare(b.due))],["Submitted",all.filter(a=>a.status==="submitted")],["Graded",all.filter(a=>a.status==="graded")]];
+  return `<div class="head"><h1>Assignments</h1><p>Practice work from your tutor. Open one to read the instructions and submit your answer.</p></div>
+  ${groups.map(([t,list])=>`<h2 class="section-title">${t} <span class="muted small">(${list.length})</span></h2>
+    ${list.length?`<div class="card"><div class="list">${list.map(a=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a></h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div></div>`:empty("Nothing here.")}`).join("")}`;
+};
+V.assignment = (id) => {
+  const a = S.assignments.find(x=>x.id===id); if(!a) return V.notfound();
+  const s = stu(a.student);
+  const back = ME.role==="tutor" ? `<a class="crumb" href="#/review">← Review work</a>` : `<a class="crumb" href="#/assignments">← Assignments</a>`;
+  let action = "";
+  if(ME.role==="student" && a.status==="assigned") action = `<form class="card" data-form="submit" data-id="${a.id}"><div class="field"><label for="ans">Your answer</label><textarea id="ans" name="ans" required placeholder="Type your work here. Show your steps!"></textarea></div><button class="btn btn-primary">Submit assignment</button></form>`;
+  if(a.submission) action = `<div class="card"><h2>${ME.role==="tutor"?esc(s.name)+"'s":"Your"} submission</h2><p style="white-space:pre-wrap;margin:0">${esc(a.submission)}</p></div>`;
+  if(ME.role==="tutor" && a.status==="submitted") action += `<form class="card" style="margin-top:16px" data-form="grade" data-id="${a.id}"><h2>Grade this work</h2><div class="form-row"><div class="field"><label for="g">Grade</label><select id="g" name="grade">${["A","A−","B+","B","B−","C+","C","Needs revision"].map(g=>`<option>${g}</option>`).join("")}</select></div></div><div class="field"><label for="fb">Feedback</label><textarea id="fb" name="fb" required placeholder="What went well, and what to try next"></textarea></div><button class="btn btn-primary">Return graded work</button></form>`;
+  if(a.status==="graded") action += `<div class="card note" style="margin-top:16px"><div class="top"><h3>Tutor feedback</h3><span class="tag ok">Grade: ${esc(a.grade)}</span></div><p style="margin:0">${esc(a.feedback)}</p></div>`;
+  return `${back}<div class="head"><div class="label">${esc(S.courses[a.course].title)}${ME.role==="tutor"?" · "+esc(s.name):""}</div><h1 style="margin-top:6px">${esc(a.title)}</h1><div style="margin-top:10px">${statusTag(a)}</div></div>
+  <div class="reader"><div class="keys"><h3>Instructions</h3><p style="margin:0">${esc(a.instructions)}</p></div>${action}</div>`;
+};
+V.assessments = () => {
+  const s = currentStudent(); const qs = Object.values(S.quizzes).filter(q=>s.courses.includes(q.course));
+  return `<div class="head"><h1>Assessments</h1><p>Short checks that show what you've mastered and what to practice next. You can retake any of them.</p></div>
+  ${qs.length?`<div class="grid g2">${qs.map(q=>{const r=S.results.filter(x=>x.student===s.id&&x.quiz===q.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    return `<div class="card"><span class="label">${esc(S.courses[q.course].title)} · ${q.questions.length} questions</span><h3 style="margin:6px 0 12px">${esc(q.title)}</h3>
+    ${r?`<p class="small muted">Last score: <b style="color:var(--ink)">${r.score}/${r.total}</b> on ${fmt(r.date)}</p>`:`<p class="small muted">Not taken yet.</p>`}
+    <a class="btn ${r?"btn-ghost":"btn-primary"} btn-sm" href="#/quiz/${q.id}">${r?"Retake":"Start"} assessment</a></div>`}).join("")}</div>`:empty("No assessments for your courses yet.")}`;
+};
+let lastQuiz = null;
+V.quiz = (id) => {
+  const q = S.quizzes[id]; if(!q) return V.notfound();
+  const res = lastQuiz && lastQuiz.id===id ? lastQuiz : null;
+  return `<a class="crumb" href="#/assessments">← Assessments</a><div class="head"><h1>${esc(q.title)}</h1><p>${esc(S.courses[q.course].title)} · ${q.questions.length} questions</p></div>
+  <div class="reader">
+  ${res?`<div class="card hero-card score"><div class="big">${res.score}/${q.questions.length}</div><div><b style="font-family:var(--display)">${res.score===q.questions.length?"Perfect score!":res.score/q.questions.length>=.7?"Great work!":"Good effort. Let's keep practicing."}</b><div class="small muted">Your tutor can see this result.</div></div></div>`:""}
+  <form class="card" data-form="quiz" data-id="${id}">
+    ${q.questions.map((x,i)=>`<div class="q"><fieldset><legend>${i+1}. ${esc(x.q)}</legend>
+      ${x.o.map((o,j)=>{let cls="";if(res){if(j===x.a)cls="right";else if(res.answers[i]===j)cls="wrong";}
+        return `<label class="opt ${cls}"><input type="radio" name="q${i}" value="${j}" ${res&&res.answers[i]===j?"checked":""} ${res?"disabled":""} required> ${esc(o)}</label>`}).join("")}
+    </fieldset></div>`).join("")}
+    ${res?`<button type="button" class="btn btn-ghost" data-act="retake" data-id="${id}">Retake assessment</button>`:`<button class="btn btn-primary">Submit answers</button>`}
+  </form></div>`;
+};
+V.notes = () => {
+  const s = currentStudent(); const ns = notesFor(s.id);
+  return `<div class="head"><h1>Session notes</h1><p>Written after every 60-minute session: what ${ME.role==="parent"?esc(s.name.split(" ")[0]):"you"} worked on and what comes next.</p></div>
+  <div class="grid">${ns.length?ns.map(n=>noteCard(n)).join(""):empty("Notes appear here after the first session.")}</div>`;
+};
+V.schedule = () => {
+  const sid = ME.role==="tutor" ? null : ME.student;
+  const up = upcoming(sid);
+  const form = ME.role==="tutor" ? `<form class="card" data-form="session" style="margin-bottom:28px"><h2>Schedule a session</h2>
+    <div class="form-row"><div class="field"><label for="st">Student</label><select id="st" name="student">${S.students.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div>
+    <div class="field"><label for="sb">Subject</label><input type="text" id="sb" name="subject" required placeholder="e.g. Algebra I"></div>
+    <div class="field"><label for="dt">Date</label><input type="date" id="dt" name="date" required value="${dayOffset(1)}"></div>
+    <div class="field"><label for="tm">Time</label><input type="time" id="tm" name="time" required value="16:00"></div>
+    <div class="field"><label for="sv">Service</label><select id="sv" name="service"><option>AGC Core Tutoring</option><option>AGC Ascent Coaching</option></select></div>
+    <div class="field"><label for="md">Location</label><select id="md" name="mode"><option>In-home</option><option>Public library</option><option>AGC Anywhere</option></select></div></div>
+    <button class="btn btn-primary">Add to schedule</button></form>` : "";
+  return `<div class="head"><h1>Schedule</h1><p>Upcoming 1:1 sessions, in person or online through AGC Anywhere.</p></div>${form}
+  <div class="card">${up.length?`<div class="list">${up.map(x=>sessionRow(x,!sid)).join("")}</div>`:`<p class="muted" style="margin:0">No upcoming sessions.</p>`}</div>`;
+};
+
+/* ---------- views: parent ---------- */
+V.overview = () => {
+  const s = currentStudent(), o = overall(s);
+  const graded = assignFor(s.id).filter(a=>a.status==="graded");
+  const res = S.results.filter(r=>r.student===s.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const note = notesFor(s.id)[0];
+  return `<div class="head"><h1>${esc(s.name)}'s progress</h1><p>${esc(s.grade)} · Your window into every session, lesson and result.</p></div>
+  <div class="grid g3">${balanceCard(s,true)}${nextSessionCard(s.id)}
+    <div class="card"><div class="label">Lessons completed</div><div class="big">${o.done} <small>of ${o.total}</small></div>${stairs(o.done,o.total)}</div></div>
+  <h2 class="section-title">Progress by course</h2>
+  <div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
+  <div class="grid g2" style="margin-top:36px">
+    <div class="card"><h2>Recent results</h2>${graded.length||res.length?`<div class="list">
+      ${res.map(r=>`<div class="row"><div><h4>${esc(S.quizzes[r.quiz].title)}</h4><div class="meta">Assessment · ${fmt(r.date)}</div></div><span class="tag gold">${r.score}/${r.total}</span></div>`).join("")}
+      ${graded.map(a=>`<div class="row"><div><h4>${esc(a.title)}</h4><div class="meta">Assignment · ${esc(S.courses[a.course].title)}</div></div><span class="tag ok">${esc(a.grade)}</span></div>`).join("")}
+    </div>`:`<p class="muted">Results appear here as work is graded.</p>`}</div>
+    <div class="card"><h2>Latest session note</h2>${note?`<h3>${esc(note.focus)}</h3><div class="label" style="margin-bottom:8px">${fmtLong(note.date)}</div><p class="small">${esc(note.summary)}</p>${note.next?`<p class="small"><b style="font-family:var(--display)">Next steps:</b> ${esc(note.next)}</p>`:""}<a class="linkish" href="#/notes">Read all notes</a>`:`<p class="muted">Notes appear after each session.</p>`}</div>
+  </div>`;
+};
+V.packages = () => {
+  const s = currentStudent();
+  const P = [["Flex Aspire Pass","Pay-as-you-go",1,100,100,0],["Sprint Growth Pack","8 sessions",8,90,720,80],["Momentum Growth Pack","16 sessions",16,85,1360,240],["Ascent Progress Pack","32 sessions",32,80,2560,640],["Semester Conquer Pass","48 sessions",48,75,3600,1200],["Apex Scholar Elite","72 sessions",72,70,5040,2160]];
+  return `<div class="head"><h1>Packages &amp; balance</h1><p>Track sessions used and compare packages when it's time to renew.</p></div>
+  <div class="grid g2" style="margin-bottom:28px">${balanceCard(s,true)}<div class="card"><h2>Current package</h2><p style="margin:0 0 6px"><b style="font-family:var(--display)">${esc(s.pkg.name)}</b></p><p class="muted small" style="margin:0">${s.pkg.used} of ${s.pkg.total} sessions used. Each session is 60 minutes of 1:1 support.</p></div></div>
+  <div class="card table-wrap"><div class="list">${P.map(p=>`<div class="row"><div><h4>${p[0]}${p[0]===s.pkg.name?' <span class="tag gold">Current</span>':""}</h4><div class="meta">${p[1]} · $${p[3]}/session</div></div><div style="text-align:right;font-family:var(--display)"><b>$${p[4].toLocaleString()}</b>${p[5]?`<div class="small" style="color:var(--gold-text)">Save $${p[5].toLocaleString()}</div>`:""}</div></div>`).join("")}</div></div>
+  <p class="small muted" style="margin-top:14px">To renew or change packages, contact AGC Tutorials or use the cart on our website.</p>`;
+};
+
+/* ---------- views: tutor ---------- */
+V.tdash = () => {
+  const up = upcoming().slice(0,5), sub = S.assignments.filter(a=>a.status==="submitted"), low = S.students.filter(s=>remaining(s)<=2);
+  return `<div class="head"><h1>${greeting()}, Rochelle</h1><p>${S.students.length} active students · ${up.length} upcoming sessions</p></div>
+  <div class="grid g3">
+    <div class="card hero-card"><div class="label">Work to review</div><div class="big">${sub.length}</div><a class="linkish" style="color:var(--gold)" href="#/review">Open review queue</a></div>
+    <div class="card"><div class="label">Sessions this week</div><div class="big">${upcoming().filter(x=>daysUntil(x.date)<7).length}</div><a class="linkish" href="#/schedule">View schedule</a></div>
+    <div class="card"><div class="label">Low session balance</div><div class="big">${low.length}</div><div class="small muted">${low.length?low.map(s=>esc(s.name)+" ("+remaining(s)+" left)").join(", "):"Everyone is well stocked."}</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:36px">
+    <div class="card"><h2>Upcoming sessions</h2>${up.length?`<div class="list">${up.map(x=>sessionRow(x,true)).join("")}</div>`:`<p class="muted">Nothing scheduled.</p>`}</div>
+    <div class="card"><h2>Quick actions</h2><div style="display:flex;flex-direction:column;gap:10px">
+      <a class="btn btn-primary" href="#/log">Log a session</a><a class="btn btn-ghost" href="#/review">Create an assignment</a><a class="btn btn-ghost" href="#/schedule">Schedule a session</a></div></div>
+  </div>`;
+};
+V.students = () => `<div class="head"><h1>Students</h1><p>Progress, balances and notes for every student you work with.</p></div>
+  <div class="grid g3">${S.students.map(s=>{const o=overall(s),r=remaining(s);return `<a class="card course" href="#/student/${s.id}"><span class="svc">${esc(s.grade)} · Parent: ${esc(s.parent)}</span><h3>${esc(s.name)}</h3>${stairs(o.done,o.total)}
+    <div class="foot"><span>${o.done}/${o.total} lessons</span><span class="tag ${r<=2?"warn":""}">${r} sessions left</span></div></a>`}).join("")}</div>`;
+V.student = (id) => {
+  const s = stu(id); if(!s) return V.notfound();
+  const res = S.results.filter(r=>r.student===id);
+  return `<a class="crumb" href="#/students">← Students</a><div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}</p></div>
+  <div class="grid g3">${balanceCard(s,true)}${nextSessionCard(id)}<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div></div>
+  <h2 class="section-title">Courses</h2><div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
+  <h2 class="section-title">Assignments</h2><div class="card">${assignFor(id).length?`<div class="list">${assignFor(id).map(a=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a></h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">No assignments yet.</p>`}</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 class="section-title">Session notes</h2><a class="btn btn-primary btn-sm" href="#/log/${id}">Log a session</a></div>
+  <div class="grid">${notesFor(id).map(n=>noteCard(n)).join("")||empty("No notes yet.")}</div>`;
+};
+V.log = (pre) => `<div class="head"><h1>Log a session</h1><p>Saving a note shares it with the student and parent right away and deducts one session from their balance. You can also email the notes straight to the parent.</p></div>
+  <form class="card reader" data-form="note">
+    <div class="form-row">
+      <div class="field"><label for="ls">Student</label><select id="ls" name="student">${S.students.map(s=>`<option value="${s.id}" ${s.id===pre?"selected":""}>${esc(s.name)} (${remaining(s)} left)</option>`).join("")}</select></div>
+      <div class="field"><label for="ld">Date</label><input type="date" id="ld" name="date" required value="${today()}"></div>
+      <div class="field"><label for="lsv">Service</label><select id="lsv" name="service"><option>AGC Core Tutoring</option><option>AGC Ascent Coaching</option></select></div>
+      <div class="field"><label for="lm">Location</label><select id="lm" name="mode"><option>In-home</option><option>Public library</option><option>AGC Anywhere</option></select></div>
+    </div>
+    <div class="field"><label for="lf">Focus</label><input type="text" id="lf" name="focus" required placeholder="e.g. Algebra I: slope"></div>
+    <div class="field"><label for="lsum">What we worked on</label><textarea id="lsum" name="summary" required placeholder="Progress, wins and what was challenging"></textarea></div>
+    <div class="field"><label for="ln">Next steps</label><input type="text" id="ln" name="next" placeholder="Practice or goals before the next session"></div>
+    <div class="field"><label for="lpe">Parent email</label><input type="email" id="lpe" name="parentEmail" placeholder="parent@example.com" value="${esc((stu(pre)||S.students[0]).parentEmail||"")}"></div>
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:18px;cursor:pointer"><input type="checkbox" name="emailParent" checked style="accent-color:var(--navy);width:18px;height:18px"> Email these notes to the parent after saving</label>
+    <button class="btn btn-primary">Save note &amp; deduct session</button>
+  </form>`;
+V.review = () => {
+  const sub = S.assignments.filter(a=>a.status==="submitted");
+  const open = S.assignments.filter(a=>a.status==="assigned").sort((a,b)=>a.due.localeCompare(b.due));
+  return `<div class="head"><h1>Review work</h1><p>Grade submitted assignments and set new practice.</p></div>
+  <h2 class="section-title">Waiting for review (${sub.length})</h2>
+  ${sub.length?`<div class="card"><div class="list">${sub.map(a=>`<div class="row"><div><h4>${esc(a.title)}</h4><div class="meta">${esc(stu(a.student).name)} · ${esc(S.courses[a.course].title)}</div></div><a class="btn btn-primary btn-sm" href="#/assignment/${a.id}">Grade</a></div>`).join("")}</div></div>`:empty("Nothing to review right now.")}
+  <h2 class="section-title">Create an assignment</h2>
+  <form class="card" data-form="assign">
+    <div class="form-row">
+      <div class="field"><label for="as">Student</label><select id="as" name="student">${S.students.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div>
+      <div class="field"><label for="ac">Course</label><select id="ac" name="course">${Object.values(S.courses).map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join("")}</select></div>
+      <div class="field"><label for="at">Title</label><input type="text" id="at" name="title" required></div>
+      <div class="field"><label for="adue">Due date</label><input type="date" id="adue" name="due" required value="${dayOffset(7)}"></div>
+    </div>
+    <div class="field"><label for="ai">Instructions</label><textarea id="ai" name="instructions" required></textarea></div>
+    <button class="btn btn-primary">Assign</button>
+  </form>
+  <h2 class="section-title">Open assignments (${open.length})</h2>
+  <div class="card">${open.length?`<div class="list">${open.map(a=>`<div class="row"><div><h4>${esc(a.title)}</h4><div class="meta">${esc(stu(a.student).name)} · ${esc(S.courses[a.course].title)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">None open.</p>`}</div>`;
+};
+V.library = () => `<div class="head"><h1>Course library</h1><p>All lessons across AGC Core Tutoring and AGC Ascent Coaching.</p></div>
+  <div class="grid g3">${Object.values(S.courses).map(c=>`<a class="card course" href="#/course/${c.id}"><span class="svc">${esc(c.service)}</span><h3>${esc(c.title)}</h3><p class="small muted" style="margin:0">${esc(c.blurb)}</p><div class="foot"><span>${lessonsOf(c).length} lessons</span><span>${S.students.filter(s=>s.courses.includes(c.id)).length} enrolled</span></div></a>`).join("")}</div>`;
+V.notfound = () => `<div class="head"><h1>Page not found</h1><p>That page doesn't exist. Use the menu to find your way back.</p></div>`;
+
+/* ---------- navigation ---------- */
+const NAV = {
+  student:[["dashboard","Dashboard"],["courses","My courses"],["assignments","Assignments"],["assessments","Assessments"],["notes","Session notes"],["schedule","Schedule"]],
+  parent:[["overview","Overview"],["notes","Session notes"],["schedule","Schedule"],["packages","Packages & balance"]],
+  tutor:[["tdash","Dashboard"],["students","Students"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["library","Course library"]]
+};
+const ALLOWED = {
+  student:["dashboard","courses","course","lesson","assignments","assignment","assessments","quiz","notes","schedule"],
+  parent:["overview","notes","schedule","packages"],
+  tutor:["tdash","students","student","log","review","assignment","schedule","library","course","lesson"]
+};
+function route(){ const h = location.hash.replace(/^#\/?/,""); const [name,...args] = h.split("/"); return {name,args}; }
+
+function renderLogin(){
+  document.getElementById("root").innerHTML = `<div class="login"><div class="login-card">
+    <div class="login-logo"><img src="${LOGO}" alt="AGC Tutorials — Aspire. Grow. Conquer."></div>
+    <h1>AGC Learning Portal</h1><p class="sub">Lessons, session notes and progress in one place.</p>
+    <div class="roles">
+      <button class="role" data-act="login" data-role="student" data-student="s1"><b>Student</b><span>Take lessons, submit assignments and complete assessments.</span><em>Sign in as Maya Santos</em></button>
+      <button class="role" data-act="login" data-role="parent" data-student="s1"><b>Parent</b><span>Follow progress, read session notes and track your balance.</span><em>Sign in as Ana Santos</em></button>
+      <button class="role" data-act="login" data-role="tutor"><b>Tutor</b><span>Log sessions, grade work and manage your students.</span><em>Sign in as Rochelle Concepcion</em></button>
+    </div>
+    <p class="foot">Demo accounts · Changes are saved in this browser · <button data-act="reset" style="background:none;border:0;color:var(--gold-text);cursor:pointer;text-decoration:underline;font:inherit">Reset demo data</button></p>
+  </div></div>`;
+}
+function whoLabel(){
+  if(ME.role==="tutor") return {n:S.tutor,r:"Founder & Tutor"};
+  const s = stu(ME.student); return ME.role==="parent" ? {n:s.parent,r:"Parent of "+s.name.split(" ")[0]} : {n:s.name,r:"Student · "+s.grade};
+}
+function render(){
+  if(!ME){ renderLogin(); return; }
+  let {name,args} = route();
+  if(!ALLOWED[ME.role].includes(name)){ name = NAV[ME.role][0][0]; history.replaceState(null,"","#/"+name); args=[]; }
+  const html = (V[name]||V.notfound)(...args);
+  const pending = S.assignments.filter(a=>a.status==="submitted").length;
+  const todo = ME.role==="student" ? assignFor(ME.student).filter(a=>a.status==="assigned").length : 0;
+  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:"students"};
+  const active = parentOf[name] || name;
+  const w = whoLabel();
+  document.getElementById("root").innerHTML = `<div class="app">
+    <div class="topbar"><button data-act="menu" aria-controls="side" aria-expanded="false">Menu</button><b>AGC Learning Portal</b></div>
+    <div class="scrim" data-act="closemenu"></div>
+    <aside class="side" id="side"><div class="logo"><img src="${LOGO}" alt="AGC Tutorials"></div>
+      <nav aria-label="Main">${NAV[ME.role].map(([k,l])=>{const badge=k==="review"&&pending?`<span class="pill">${pending}</span>`:k==="assignments"&&todo?`<span class="pill">${todo}</span>`:"";return `<a href="#/${k}" ${k===active?'aria-current="page"':""}>${l}${badge}</a>`}).join("")}</nav>
+      <div class="who"><b>${esc(w.n)}</b><span>${esc(w.r)}</span><br><button data-act="logout">Switch account</button></div>
+    </aside>
+    <main><div class="page">${html}</div></main></div>`;
+  document.querySelector("main").focus?.();
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const a = b.dataset.act;
+  if(a==="login"){ ME = {role:b.dataset.role, student:b.dataset.student||null}; saveMe(); location.hash = "#/"+NAV[ME.role][0][0]; render(); }
+  if(a==="logout"){ ME = null; saveMe(); location.hash = ""; render(); }
+  if(a==="reset"){ S = seed(); save(); toast("Demo data reset"); }
+  if(a==="menu"){ document.getElementById("side").classList.add("open"); document.querySelector(".scrim").classList.add("show"); b.setAttribute("aria-expanded","true"); }
+  if(a==="closemenu"){ document.getElementById("side").classList.remove("open"); b.classList.remove("show"); }
+  if(a==="complete"){ const s = currentStudent(); if(!s.done.includes(b.dataset.lid)) s.done.push(b.dataset.lid); save(); toast("Lesson complete. One step higher!");
+    location.hash = b.dataset.next ? `#/lesson/${b.dataset.cid}/${b.dataset.next}` : `#/course/${b.dataset.cid}`; }
+  if(a==="retake"){ lastQuiz = null; render(); window.scrollTo(0,0); }
+});
+document.addEventListener("change", e => {
+  if(e.target.id==="ls"){ const pe = document.getElementById("lpe"); if(pe) pe.value = stu(e.target.value)?.parentEmail||""; }
+});
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-form]"); if(!f) return; e.preventDefault();
+  const d = Object.fromEntries(new FormData(f)); const kind = f.dataset.form;
+  if(kind==="submit"){ const a = S.assignments.find(x=>x.id===f.dataset.id); a.submission=d.ans.trim(); a.status="submitted"; save(); toast("Assignment submitted"); render(); }
+  if(kind==="grade"){ const a = S.assignments.find(x=>x.id===f.dataset.id); a.grade=d.grade; a.feedback=d.fb.trim(); a.status="graded"; save(); toast("Graded work returned"); location.hash="#/review"; }
+  if(kind==="quiz"){ const q = S.quizzes[f.dataset.id]; const answers = q.questions.map((_,i)=>Number(d["q"+i]));
+    const score = answers.filter((x,i)=>x===q.questions[i].a).length;
+    S.results.push({id:uid("r"),student:ME.student,quiz:q.id,score,total:q.questions.length,date:today()}); save();
+    lastQuiz = {id:q.id,answers,score}; render(); window.scrollTo(0,0); }
+  if(kind==="note"){ const s = stu(d.student); const email = (d.parentEmail||"").trim(); if(email) s.parentEmail = email;
+    const n = {id:uid("n"),student:d.student,date:d.date,service:d.service,mode:d.mode,focus:d.focus.trim(),summary:d.summary.trim(),next:d.next.trim()};
+    S.notes.push(n); s.pkg.used = Math.min(s.pkg.total, s.pkg.used+1); save();
+    const mail = d.emailParent && email;
+    toast(`Note saved · ${remaining(s)} sessions left for ${s.name.split(" ")[0]}${mail?" · opening email to "+s.parent.split(" ")[0]:d.emailParent?" · add a parent email to send notes":""}`);
+    location.hash = "#/student/"+s.id; if(mail) location.href = noteMailto(n, email); }
+  if(kind==="assign"){ S.assignments.push({id:uid("as"),student:d.student,course:d.course,title:d.title.trim(),due:d.due,instructions:d.instructions.trim(),status:"assigned"});
+    const s = stu(d.student); if(!s.courses.includes(d.course)) s.courses.push(d.course); save(); toast("Assignment sent to "+s.name.split(" ")[0]); render(); }
+  if(kind==="session"){ S.sessions.push({id:uid("ss"),student:d.student,date:d.date,time:d.time,subject:d.subject.trim(),service:d.service,mode:d.mode}); save(); toast("Session scheduled"); render(); }
+});
+window.addEventListener("hashchange", () => { if(route().name!=="quiz") lastQuiz=null; render(); window.scrollTo(0,0); });
+render();
+</script>
+</body>
+</html>
