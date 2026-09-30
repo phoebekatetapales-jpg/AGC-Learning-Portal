@@ -364,6 +364,7 @@ function seed(){
 // What the Super Admin can grant or withhold from the Admin: [key, label, description, on by default]
 const PERMS = [
   ["viewStudents","Student details & progress","Student list, grades, course progress and lessons completed.",true],
+  ["viewProfiles","Student profiles","Birthdays, school, hometown, family contacts and learning needs.",true],
   ["editProfiles","Edit student profiles","Update birthdays, school, address, contacts and learning needs.",true],
   ["viewResults","Assignments & assessments","Assignment status, grades and assessment scores.",true],
   ["viewNotes","Session notes","Notes tutors write after every session.",true],
@@ -379,7 +380,7 @@ function can(p){
   if(ME.role==="tutor"||ME.role==="superadmin") return true;
   if(ME.role!=="admin") return false;
   if(p==="editBilling" && !S.adminPerms.viewBilling) return false;
-  if(p==="editProfiles" && !S.adminPerms.viewStudents) return false;
+  if(p==="editProfiles" && !S.adminPerms.viewProfiles) return false;
   return !!S.adminPerms[p];
 }
 const isStaff = () => ["tutor","admin","superadmin"].includes(ME?.role);
@@ -727,9 +728,8 @@ V.student = (id) => {
       </div>
       <button class="btn btn-primary">Save payment details</button>
     </form>` : "";
-  return `${back}<div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}${isStaff()&&!tutor&&s.parentEmail?" · "+esc(s.parentEmail):""}</p></div>
+  return `${back}<div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}</p>${can("viewProfiles")?`<a class="btn btn-ghost btn-sm" style="margin-top:12px" href="#/profile/${s.id}">View student profile</a>`:""}</div>
   <div class="grid g3">${balanceCard(s,true)}${can("viewSchedule")?nextSessionCard(id):`<div class="card"><div class="label">Lessons completed</div><div class="big">${overall(s).done} <small>of ${overall(s).total}</small></div></div>`}${can("viewResults")?`<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div>`:""}</div>
-  <h2 class="section-title">Profile</h2><div class="grid g2">${profileCard(s)}</div>${can("editProfiles")?profileForm(s):""}
   ${can("viewBilling")?`<h2 class="section-title">Payment &amp; package</h2><div class="grid g2">${billingCard(s)}${billingForm}</div>`:""}
   <h2 class="section-title">Courses</h2><div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
   ${can("viewResults")?`<h2 class="section-title">Assignments</h2><div class="card">${assignFor(id).length?`<div class="list">${assignFor(id).map(a=>`<div class="row"><div><h4>${tutor?`<a class="linkish" style="color:inherit" href="#/assignment/${a.id}">${esc(a.title)}</a>`:esc(a.title)}</h4><div class="meta">${esc(S.courses[a.course].title)} · due ${fmt(a.due)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">No assignments yet.</p>`}</div>`:""}
@@ -799,15 +799,13 @@ V.adash = () => {
   <h2 class="section-title">All students</h2>
   <div class="card table-wrap"><table class="tbl"><thead><tr>${cols.map(c=>`<th scope="col">${c}</th>`).join("")}</tr></thead><tbody>
   ${ss.map(s=>{ const o=overall(s), p=pct(o.done,o.total), r=remaining(s), b=billing(s), last=notesFor(s.id)[0], sc=avgScore(S.results.filter(x=>x.student===s.id));
-    return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/student/${s.id}">${esc(s.name)}</a><div class="small muted">${esc(s.grade)}${s.profile?.birthday?" · age "+ageOf(s.profile.birthday):""}${s.profile?.school?" · "+esc(s.profile.school):""}</div></td>
+    return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/student/${s.id}">${esc(s.name)}</a><div class="small muted">${esc(s.grade)} · ${esc(s.parent)}</div></td>
       <td>${p}%${miniBar(p)}</td><td>${o.done}/${o.total}</td>
       ${can("viewResults")?`<td>${sc===null?`<span class="muted">—</span>`:sc+"%"}</td>`:""}
       <td><span class="tag ${r<=2?"warn":""}">${r} of ${s.pkg.total}</span></td>
       ${can("viewBilling")?`<td>${b.owed?`<span class="tag ${b.urgent?"warn":"gold"}">${money(b.owed)} · ${b.status}</span>`:`<span class="tag ok">Paid</span>`}</td>`:""}
       ${can("viewNotes")?`<td>${last?`${fmt(last.date)}<div class="small muted">${esc(last.focus)}</div>`:`<span class="muted">—</span>`}</td>`:""}</tr>`; }).join("")}
   </tbody></table></div>
-  ${(()=>{ const up = ss.filter(s=>s.profile?.birthday).map(s=>({s,d:daysToBirthday(s.profile.birthday)})).sort((a,b)=>a.d-b.d);
-    return up.length ? `<h2 class="section-title">Upcoming birthdays</h2><div class="card"><div class="list">${up.map(({s,d})=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/student/${s.id}">${esc(s.name)}</a></h4><div class="meta">${fmtBday(s.profile.birthday).replace(/, \d{4}$/,"")} · turns ${ageOf(s.profile.birthday)+(d===0?0:1)}</div></div><span class="tag ${d<=30?"gold":""}">${d===0?"Today 🎂":d===1?"Tomorrow":"In "+d+" days"}</span></div>`).join("")}</div></div>` : ""; })()}
   <h2 class="section-title">Progress by course</h2>
   <div class="grid g3">${Object.values(S.courses).map(c=>{ const en=ss.filter(s=>s.courses.includes(c.id)); const t=en.reduce((a,s)=>{const q=courseProgress(s,c.id);a.d+=q.done;a.t+=q.total;return a},{d:0,t:0}); const p=pct(t.d,t.t);
     return `<div class="card"><span class="svc">${esc(c.service)}</span><h3 style="margin-top:4px">${esc(c.title)}</h3>${miniBar(p)}<div class="small muted">${en.length} enrolled · ${p}% complete</div></div>`; }).join("")}</div>`;
@@ -849,25 +847,49 @@ V.access = () => `<div class="head"><h1>Admin access</h1><p>Choose what ${esc(AD
   </div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button class="btn btn-primary">Save access</button><button type="button" class="btn btn-ghost" data-act="permdefaults">Restore defaults</button></div></form>
   <div class="card"><h2>Access history</h2>${S.accessLog.length?`<div class="list">${[...S.accessLog].reverse().slice(0,12).map(l=>`<div class="row"><div><h4>${esc(l.text)}</h4><div class="meta">by ${esc(SUPER)}</div></div><span class="small muted" style="white-space:nowrap">${fmt(l.date)}</span></div>`).join("")}</div>`:`<p class="muted" style="margin:0">No changes yet. The Admin has the default access.</p>`}</div>
   </div>`;
+/* ---------- views: student profiles module ---------- */
+function birthdayList(ss){
+  const up = ss.filter(s=>s.profile?.birthday).map(s=>({s,d:daysToBirthday(s.profile.birthday)})).sort((a,b)=>a.d-b.d);
+  if(!up.length) return "";
+  return `<div class="card"><h2>Upcoming birthdays</h2><div class="list">${up.map(({s,d})=>`<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/profile/${s.id}">${esc(s.name)}</a></h4><div class="meta">${fmtBday(s.profile.birthday).replace(/, \d{4}$/,"")} · turns ${ageOf(s.profile.birthday)+(d===0?0:1)}</div></div><span class="tag ${d<=30?"gold":""}">${d===0?"Today 🎂":d===1?"Tomorrow":"In "+d+" days"}</span></div>`).join("")}</div></div>`;
+}
+V.profiles = () => {
+  const ss = S.students, missing = ss.filter(s=>{ const p=s.profile||{}; return !p.birthday||!p.school||!p.parentPhone||!p.emergency; });
+  return `<div class="head"><h1>Student profiles</h1><p>Personal details, family contacts and learning needs for every student. Kept separate from progress and payments.</p></div>
+  <div class="grid g3">${ss.map(s=>{ const p=s.profile||{}, soon=bdayLabel(p.birthday);
+    return `<a class="card course" href="#/profile/${s.id}"><span class="svc">${esc(s.grade)}${p.birthday?" · age "+ageOf(p.birthday):""}</span><h3>${esc(s.name)}</h3>
+      <p class="small muted" style="margin:0">${[p.school,p.lives?"Lives in "+p.lives:"",p.from&&p.from!==p.lives?"From "+p.from:""].filter(Boolean).map(esc).join(" · ")||"No details yet"}</p>
+      <div class="foot"><span>${esc(s.parent)}</span>${soon?`<span class="tag gold">${soon}</span>`:""}</div></a>`; }).join("")}</div>
+  <div class="grid g2" style="margin-top:36px">${birthdayList(ss)}
+    <div class="card"><h2>Profiles to complete</h2>${missing.length?`<div class="list">${missing.map(s=>{ const p=s.profile||{}; const gaps=[["birthday","birthday"],["school","school"],["parentPhone","parent phone"],["emergency","emergency contact"]].filter(([k])=>!p[k]).map(x=>x[1]);
+      return `<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/profile/${s.id}">${esc(s.name)}</a></h4><div class="meta">Missing ${gaps.join(", ")}</div></div></div>`; }).join("")}</div>`:`<p class="muted" style="margin:0">Every profile is complete.</p>`}</div>
+  </div>`;
+};
+V.profile = (id) => {
+  const s = stu(id); if(!s) return V.notfound();
+  return `<a class="crumb" href="#/profiles">← Student profiles</a><div class="head"><div class="label">Student profile</div><h1 style="margin-top:6px">${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}</p>
+    ${(ME.role==="tutor"||can("viewStudents"))?`<a class="btn btn-ghost btn-sm" style="margin-top:12px" href="#/student/${s.id}">View progress</a>`:""}</div>
+  <div class="grid g2">${profileCard(s)}</div>${can("editProfiles")?profileForm(s):""}`;
+};
 V.notfound = () => `<div class="head"><h1>Page not found</h1><p>That page doesn't exist. Use the menu to find your way back.</p></div>`;
 
 /* ---------- navigation ---------- */
 const NAV = {
   student:[["dashboard","Dashboard"],["courses","My courses"],["assignments","Assignments"],["assessments","Assessments"],["notes","Session notes"],["schedule","Schedule"]],
   parent:[["overview","Overview"],["notes","Session notes"],["schedule","Schedule"],["packages","Packages & balance"]],
-  tutor:[["tdash","Dashboard"],["students","Students"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["library","Course library"]],
-  admin:[["adash","Students & progress"],["schedule","Schedule"]],
-  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["schedule","Schedule"],["access","Admin access"]]
+  tutor:[["tdash","Dashboard"],["students","Students"],["profiles","Student profiles"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["library","Course library"]],
+  admin:[["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"]],
+  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["access","Admin access"]]
 };
 const ALLOWED = {
   student:["dashboard","courses","course","lesson","assignments","assignment","assessments","quiz","notes","schedule"],
   parent:["overview","notes","schedule","packages"],
-  tutor:["tdash","students","student","log","review","assignment","schedule","library","course","lesson"],
-  admin:["adash","student","schedule"],
-  superadmin:["portal","adash","student","schedule","access"]
+  tutor:["tdash","students","student","profiles","profile","log","review","assignment","schedule","library","course","lesson"],
+  admin:["adash","student","profiles","profile","schedule"],
+  superadmin:["portal","adash","student","profiles","profile","schedule","access"]
 };
 // Pages the Admin only sees when the Super Admin allows it
-const NEEDS = {adash:"viewStudents", student:"viewStudents", schedule:"viewSchedule"};
+const NEEDS = {adash:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule"};
 const navFor = role => NAV[role].filter(([k]) => role!=="admin" || !NEEDS[k] || can(NEEDS[k]));
 function route(){ const h = location.hash.replace(/^#\/?/,""); const [name,...args] = h.split("/"); return {name,args}; }
 
@@ -902,7 +924,7 @@ function render(){
   const html = ME.role==="admin" && NEEDS[name] && !can(NEEDS[name]) ? V.restricted() : (V[name]||V.notfound)(...args);
   const pending = S.assignments.filter(a=>a.status==="submitted").length;
   const todo = ME.role==="student" ? assignFor(ME.student).filter(a=>a.status==="assigned").length : 0;
-  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:ME.role==="tutor"?"students":"adash"};
+  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:ME.role==="tutor"?"students":"adash",profile:"profiles"};
   const active = parentOf[name] || name;
   const w = whoLabel();
   document.getElementById("root").innerHTML = `<div class="app">
