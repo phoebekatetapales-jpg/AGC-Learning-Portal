@@ -255,7 +255,7 @@ let toastT; function toast(m){ const t=document.getElementById("toast"); t.textC
 function L(id,title,mins,body,keys,example){ return {id,title,mins,body,keys,example}; }
 function seed(){
   const courses = {
-    alg1:{id:"alg1",title:"Algebra I",service:"AGC Core Tutoring: In-person Specialized Tutoring",subject:"Math",level:"Middle & High School",
+    alg1:{id:"alg1",title:"Algebra I",service:"AGC Core Tutoring",subject:"Math",level:"Middle & High School",
       blurb:"Build fluency with expressions, equations and linear relationships.",
       modules:[
         {title:"Expressions & equations",lessons:[
@@ -266,7 +266,7 @@ function seed(){
           L("a4","Slope as rate of change",25,["Slope measures how much y changes for each 1-unit change in x. We often describe it as rise over run.","A positive slope rises from left to right; a negative slope falls."],["Slope = (y₂ − y₁) ÷ (x₂ − x₁)","Positive slopes rise, negative slopes fall","A horizontal line has slope 0"],"Through (1, 2) and (3, 8): slope = (8 − 2) ÷ (3 − 1) = 6 ÷ 2 = 3."),
           L("a5","Graphing y = mx + b",25,["In slope-intercept form, m is the slope and b is the y-intercept, the point where the line crosses the y-axis.","Plot the y-intercept first, then use the slope to find a second point."],["m = slope","b = y-intercept","Start at (0, b), then rise and run"],"y = 2x + 1: start at (0, 1), go up 2 and right 1 to reach (1, 3).")]}
       ]},
-    read:{id:"read",title:"Reading Foundations",service:"AGC Core Tutoring: In-person Specialized Tutoring",subject:"Reading",level:"Elementary & Phonics",
+    read:{id:"read",title:"Reading Foundations",service:"AGC Core Tutoring",subject:"Reading",level:"Elementary & Phonics",
       blurb:"Decode words with confidence and understand what you read.",
       modules:[
         {title:"Phonics",lessons:[
@@ -286,13 +286,13 @@ function seed(){
           L("e3","Starting when it feels hard",15,["Task initiation is the skill of getting started. Most people find starting harder than continuing.","Try the five-minute start: commit to working for just five minutes, then decide whether to keep going."],["Make the first step tiny","Set a five-minute timer","Clear your workspace first"],"Instead of 'study for math', start with 'open notebook and redo problem 1'."),
           L("e4","Managing test anxiety",20,["Some nervousness before a test is normal and can even help you focus. When it becomes overwhelming, a few simple tools can bring it back down.","Box breathing slows your heart rate: breathe in for 4, hold for 4, out for 4, hold for 4."],["Prepare early with short sessions","Use box breathing (4-4-4-4)","Start with a question you know"],"Before the test: three rounds of box breathing, then skim the whole test and circle two questions you know.")]}
       ]},
-    chem:{id:"chem",title:"Chemistry",service:"AGC Core Tutoring: In-person Specialized Tutoring",subject:"Science",level:"High School",
+    chem:{id:"chem",title:"Chemistry",service:"AGC Core Tutoring",subject:"Science",level:"High School",
       blurb:"Understand atoms, bonding and chemical reactions from the ground up.",
       modules:[{title:"Foundations",lessons:[
         L("c1","Atoms and the periodic table",25,["Atoms are made of protons, neutrons and electrons. The number of protons defines the element.","The periodic table is organized so that elements in the same column share similar chemical properties."],["Protons (+), neutrons (0), electrons (−)","Atomic number = number of protons","Columns are groups with similar properties"],"Carbon has atomic number 6, so every carbon atom has 6 protons."),
         L("c2","Chemical bonds",25,["Atoms bond to become more stable. In ionic bonds, electrons are transferred; in covalent bonds, electrons are shared.","Metals and nonmetals tend to form ionic bonds, while nonmetals together form covalent bonds."],["Ionic: electrons transferred","Covalent: electrons shared","Bonding leads to stability"],"NaCl (table salt) is ionic; H₂O (water) is covalent."),
         L("c3","Balancing chemical equations",30,["Matter is conserved, so the number of each type of atom must be the same on both sides of an equation.","Change coefficients (the big numbers in front), never the subscripts."],["Count atoms on each side","Adjust coefficients only","Check every element at the end"],"H₂ + O₂ → H₂O becomes 2H₂ + O₂ → 2H₂O.")]}]},
-    alg2:{id:"alg2",title:"Algebra II",service:"AGC Core Tutoring: In-person Specialized Tutoring",subject:"Math",level:"High School",
+    alg2:{id:"alg2",title:"Algebra II",service:"AGC Core Tutoring",subject:"Math",level:"High School",
       blurb:"Master quadratics, factoring and the tools for advanced math.",
       modules:[{title:"Quadratics",lessons:[
         L("b1","Quadratic functions",25,["A quadratic function has the form y = ax² + bx + c, and its graph is a U-shaped curve called a parabola.","If a is positive the parabola opens up; if negative it opens down."],["Graph is a parabola","a > 0 opens up, a < 0 opens down","The vertex is the turning point"],"y = x² − 4 opens up with vertex at (0, −4)."),
@@ -344,19 +344,19 @@ function seed(){
       {id:uid("r"),student:"s2",quiz:"qz-chem",score:4,total:4,date:dayOffset(-6)}
     ],
     notes:[
-      {id:"n1",student:"s1",date:dayOffset(-2),service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"In-home",focus:"Algebra I: two-step equations",summary:"Maya solved 8 of 10 two-step equations independently. She's confident undoing addition first; equations with negative coefficients still slow her down.",next:"Practice five equations with negative coefficients before the next session."},
+      {id:"n1",student:"s1",date:dayOffset(-2),service:"AGC Core Tutoring",mode:"In-home",focus:"Algebra I: two-step equations",summary:"Maya solved 8 of 10 two-step equations independently. She's confident undoing addition first; equations with negative coefficients still slow her down.",next:"Practice five equations with negative coefficients before the next session."},
       {id:"n2",student:"s1",date:dayOffset(-7),service:"AGC Ascent Coaching",mode:"AGC Anywhere",focus:"Weekly planning",summary:"We built a color-coded weekly planner together. Maya identified Tuesday evenings as her most overloaded time and moved one study block to Monday.",next:"Fill in the planner every Sunday and bring it to the next Ascent session."},
-      {id:"n3",student:"s1",date:dayOffset(-12),service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"In-home",focus:"Reading: vowel teams",summary:"Strong progress decoding ai/ay and ee/ea words. Oral reading fluency rose from 88 to 97 words per minute on a grade-level passage.",next:"Read aloud for 10 minutes a day; mark any vowel-team words that are tricky."},
-      {id:"n4",student:"s2",date:dayOffset(-3),service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"Public library",focus:"Chemistry: balancing equations",summary:"Ethan balanced combustion reactions with support and is now counting atoms systematically. He rushes the final check.",next:"Finish the balancing set and check every element before submitting."},
+      {id:"n3",student:"s1",date:dayOffset(-12),service:"AGC Core Tutoring",mode:"In-home",focus:"Reading: vowel teams",summary:"Strong progress decoding ai/ay and ee/ea words. Oral reading fluency rose from 88 to 97 words per minute on a grade-level passage.",next:"Read aloud for 10 minutes a day; mark any vowel-team words that are tricky."},
+      {id:"n4",student:"s2",date:dayOffset(-3),service:"AGC Core Tutoring",mode:"Public library",focus:"Chemistry: balancing equations",summary:"Ethan balanced combustion reactions with support and is now counting atoms systematically. He rushes the final check.",next:"Finish the balancing set and check every element before submitting."},
       {id:"n5",student:"s2",date:dayOffset(-9),service:"AGC Ascent Coaching",mode:"AGC Anywhere",focus:"Breaking down the lab report",summary:"We split the chemistry lab report into six dated steps. Ethan felt much less stressed once he could see the whole plan.",next:"Complete steps 1–3 by Friday."},
-      {id:"n6",student:"s3",date:dayOffset(-5),service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"In-home",focus:"Phonics: closed syllables",summary:"Sofia read 18 of 20 closed-syllable words correctly and began splitting two-syllable words on her own. Very positive session!",next:"Practice the word cards with a parent three times this week."}
+      {id:"n6",student:"s3",date:dayOffset(-5),service:"AGC Core Tutoring",mode:"In-home",focus:"Phonics: closed syllables",summary:"Sofia read 18 of 20 closed-syllable words correctly and began splitting two-syllable words on her own. Very positive session!",next:"Practice the word cards with a parent three times this week."}
     ],
     sessions:[
-      {id:"ss1",student:"s1",date:dayOffset(2),time:"16:00",subject:"Algebra I",service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"In-home"},
+      {id:"ss1",student:"s1",date:dayOffset(2),time:"16:00",subject:"Algebra I",service:"AGC Core Tutoring",mode:"In-home"},
       {id:"ss2",student:"s1",date:dayOffset(5),time:"17:00",subject:"Executive functioning",service:"AGC Ascent Coaching",mode:"AGC Anywhere"},
-      {id:"ss3",student:"s2",date:dayOffset(1),time:"15:30",subject:"Chemistry",service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"Public library"},
-      {id:"ss4",student:"s2",date:dayOffset(4),time:"16:30",subject:"Algebra II",service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"AGC Anywhere"},
-      {id:"ss5",student:"s3",date:dayOffset(3),time:"14:00",subject:"Reading",service:"AGC Core Tutoring: In-person Specialized Tutoring",mode:"In-home"}
+      {id:"ss3",student:"s2",date:dayOffset(1),time:"15:30",subject:"Chemistry",service:"AGC Core Tutoring",mode:"Public library"},
+      {id:"ss4",student:"s2",date:dayOffset(4),time:"16:30",subject:"Algebra II",service:"AGC Core Tutoring",mode:"AGC Anywhere"},
+      {id:"ss5",student:"s3",date:dayOffset(3),time:"14:00",subject:"Reading",service:"AGC Core Tutoring",mode:"In-home"}
     ]
   };
 }
@@ -393,7 +393,7 @@ if(!S.adminPerms) S.adminPerms = defaultPerms();
 PERMS.forEach(p => { if(S.adminPerms[p[0]]==null) S.adminPerms[p[0]] = p[3]; });
 if(!S.accessLog) S.accessLog = [];
 // Program renamed 2026-11-11: update sessions, notes and courses saved under the old name
-Object.values(S).forEach(v => { if(v && typeof v==="object") Object.values(v).forEach(o => { if(o && o.service==="AGC Core Tutoring") o.service = "AGC Core Tutoring: In-person Specialized Tutoring"; }); });
+Object.values(S).forEach(v => { if(v && typeof v==="object") Object.values(v).forEach(o => { if(o && o.service==="AGC Core Tutoring: In-person Specialized Tutoring") o.service = "AGC Core Tutoring"; }); });
 { const base = seed(); S.students.forEach(s => { const b = base.students.find(x=>x.id===s.id);
   if(s.parentEmail==null) s.parentEmail = b ? b.parentEmail : "";
   if(!s.profile) s.profile = b && b.name===s.name ? {...b.profile} : {};
@@ -658,7 +658,7 @@ V.schedule = () => {
     <div class="field"><label for="sb">Subject</label><input type="text" id="sb" name="subject" required placeholder="e.g. Algebra I"></div>
     <div class="field"><label for="dt">Date</label><input type="date" id="dt" name="date" required value="${dayOffset(1)}"></div>
     <div class="field"><label for="tm">Time</label><input type="time" id="tm" name="time" required value="16:00"></div>
-    <div class="field"><label for="sv">Service</label><select id="sv" name="service"><option>AGC Core Tutoring: In-person Specialized Tutoring</option><option>AGC Ascent Coaching</option></select></div>
+    <div class="field"><label for="sv">Service</label><select id="sv" name="service"><option>AGC Core Tutoring</option><option>AGC Ascent Coaching</option></select></div>
     <div class="field"><label for="md">Location</label><select id="md" name="mode"><option>In-home</option><option>Public library</option><option>AGC Anywhere</option></select></div></div>
     <button class="btn btn-primary">Add to schedule</button></form>` : "";
   return `<div class="head"><h1>Schedule</h1><p>Upcoming 1:1 sessions, in person or online through AGC Anywhere.</p></div>${form}
@@ -743,7 +743,7 @@ V.log = (pre) => `<div class="head"><h1>Log a session</h1><p>Saving a note share
     <div class="form-row">
       <div class="field"><label for="ls">Student</label><select id="ls" name="student">${S.students.map(s=>`<option value="${s.id}" ${s.id===pre?"selected":""}>${esc(s.name)} (${remaining(s)} left)</option>`).join("")}</select></div>
       <div class="field"><label for="ld">Date</label><input type="date" id="ld" name="date" required value="${today()}"></div>
-      <div class="field"><label for="lsv">Service</label><select id="lsv" name="service"><option>AGC Core Tutoring: In-person Specialized Tutoring</option><option>AGC Ascent Coaching</option></select></div>
+      <div class="field"><label for="lsv">Service</label><select id="lsv" name="service"><option>AGC Core Tutoring</option><option>AGC Ascent Coaching</option></select></div>
       <div class="field"><label for="lm">Location</label><select id="lm" name="mode"><option>In-home</option><option>Public library</option><option>AGC Anywhere</option></select></div>
     </div>
     <div class="field"><label for="lf">Focus</label><input type="text" id="lf" name="focus" required placeholder="e.g. Algebra I: slope"></div>
@@ -773,7 +773,7 @@ V.review = () => {
   <h2 class="section-title">Open assignments (${open.length})</h2>
   <div class="card">${open.length?`<div class="list">${open.map(a=>`<div class="row"><div><h4>${esc(a.title)}</h4><div class="meta">${esc(stu(a.student).name)} · ${esc(S.courses[a.course].title)}</div></div>${statusTag(a)}</div>`).join("")}</div>`:`<p class="muted" style="margin:0">None open.</p>`}</div>`;
 };
-V.library = () => `<div class="head"><h1>Course library</h1><p>All lessons across AGC Core Tutoring: In-person Specialized Tutoring and AGC Ascent Coaching.</p></div>
+V.library = () => `<div class="head"><h1>Course library</h1><p>All lessons across AGC Core Tutoring and AGC Ascent Coaching.</p></div>
   <div class="grid g3">${Object.values(S.courses).map(c=>`<a class="card course" href="#/course/${c.id}"><span class="svc">${esc(c.service)}</span><h3>${esc(c.title)}</h3><p class="small muted" style="margin:0">${esc(c.blurb)}</p><div class="foot"><span>${lessonsOf(c).length} lessons</span><span>${S.students.filter(s=>s.courses.includes(c.id)).length} enrolled</span></div></a>`).join("")}</div>`;
 /* ---------- views: admin & super admin ---------- */
 const pct = (a,b) => b ? Math.round(a/b*100) : 0;
