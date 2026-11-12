@@ -60,6 +60,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 .role em{font-family:var(--display);font-style:normal;font-size:.85rem;color:var(--gold-text);margin-top:6px}
 .login .foot{text-align:center;font-family:var(--display);font-size:.85rem;color:var(--ink-soft);margin-top:26px}
 .roles-2{grid-template-columns:repeat(2,1fr);max-width:520px;margin:0 auto}
+.viewas{padding:14px 6px 16px;border-top:1px solid rgba(255,255,255,.1);font-family:var(--display)}
+.viewas label{display:block;font-size:.8rem;color:var(--side-soft);margin-bottom:6px}
+.viewas select{background:rgba(255,255,255,.06);color:var(--side-ink);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 10px;width:100%;font-size:.88rem}
+.viewas select option,.viewas select optgroup{background:var(--side);color:var(--side-ink)}
 .devbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--gold);color:#0B2545;font-family:var(--display);font-size:.92rem;padding:10px 16px;border-radius:10px;margin-bottom:22px}
 .devbar button{background:#0B2545;color:#F9F7F2;border:0;border-radius:8px;padding:6px 12px;font-family:var(--display);font-size:.85rem;cursor:pointer}
 textarea.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.85rem;line-height:1.5;white-space:pre;overflow:auto;tab-size:2}
@@ -1028,6 +1032,24 @@ V.viewas = () => {
   </div>`;
 };
 
+// Sidebar "View as" dropdown for the Developer (also shown while previewing another account)
+function viewAsSelect(){
+  if(ME.role!=="developer" && !ME.dev) return "";
+  const cur = ME.role==="developer" ? "developer" : ME.role+(ME.student?":"+ME.student:"");
+  const opt = (v,l) => `<option value="${v}" ${v===cur?"selected":""}>${esc(l)}</option>`;
+  return `<div class="viewas"><label for="vas">View as</label><select id="vas">
+    ${opt("developer","Developer (me)")}
+    <optgroup label="Students">${S.students.map(s=>opt("student:"+s.id,s.name)).join("")}</optgroup>
+    <optgroup label="Parents">${S.students.map(s=>opt("parent:"+s.id,s.parent+" (parent of "+s.name.split(" ")[0]+")")).join("")}</optgroup>
+    <optgroup label="Staff">${opt("tutor","Tutor · "+S.tutor)}${opt("admin","Admin · "+ADMIN)}${opt("superadmin","Super Admin · "+SUPER)}</optgroup>
+  </select></div>`;
+}
+function switchView(v){
+  if(v==="developer"){ ME = {role:"developer"}; saveMe(); location.hash = "#/dev"; render(); return; }
+  const [role, student] = v.split(":");
+  ME = {role, student:student||null, dev:true}; saveMe(); location.hash = "#/"+NAV[role][0][0]; render();
+}
+
 /* ---------- views: student profiles module ---------- */
 function birthdayList(ss){
   const up = ss.filter(s=>s.profile?.birthday).map(s=>({s,d:daysToBirthday(s.profile.birthday)})).sort((a,b)=>a.d-b.d);
@@ -1120,6 +1142,7 @@ function render(){
     <div class="scrim" data-act="closemenu"></div>
     <aside class="side" id="side"><div class="logo"><img src="${LOGO}" alt="AGC Tutorials"></div>
       <nav aria-label="Main">${navFor(ME.role).map(([k,l])=>{const badge=k==="review"&&pending?`<span class="pill">${pending}</span>`:k==="assignments"&&todo?`<span class="pill">${todo}</span>`:"";return `<a href="#/${k}" ${k===active?'aria-current="page"':""}>${l}${badge}</a>`}).join("")}</nav>
+      ${viewAsSelect()}
       <div class="who"><b>${esc(w.n)}</b><span>${esc(w.r)}</span><br><button data-act="logout">Switch account</button></div>
     </aside>
     <main><div class="page">${html}</div></main></div>`;
@@ -1150,6 +1173,7 @@ document.addEventListener("click", e => {
   if(a==="devreset" && confirm("Replace ALL portal data in this browser with the demo data? Download a backup first if you need it.")){ S = seed(); logDev("Reset all data to demo data"); save(); toast("Reset to demo data"); render(); }
 });
 document.addEventListener("change", e => {
+  if(e.target.id==="vas"){ if(ME?.role==="developer" || ME?.dev) switchView(e.target.value); return; }
   if(e.target.id==="dk"){ location.hash = "#/devdata/"+e.target.value; return; }
   if(e.target.id==="devimp" && e.target.files[0]){ const file = e.target.files[0]; file.text().then(txt => {
     let d; try { d = JSON.parse(txt); } catch(err) { toast("That file isn't valid JSON"); return; }
