@@ -1022,16 +1022,6 @@ V.devdata = (key) => {
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary">Save changes</button><button type="button" class="btn btn-ghost" data-act="devrevert">Discard edits</button></div>
   </form>`;
 };
-V.viewas = () => {
-  const btn = (role, label, sub, sid) => `<div class="row"><div><h4>${esc(label)}</h4><div class="meta">${esc(sub)}</div></div><button class="btn btn-ghost btn-sm" data-act="viewas" data-role="${role}" ${sid?`data-student="${sid}"`:""}>Open</button></div>`;
-  return `<div class="head"><h1>View as</h1><p>Open the portal exactly as another account sees it to test pages and check fixes. A bar at the top takes you back to Developer.</p></div>
-  <div class="grid g2">
-    <div class="card"><h2>Students</h2><div class="list">${S.students.map(s=>btn("student",s.name,"Student · "+s.grade,s.id)).join("")}</div></div>
-    <div class="card"><h2>Parents</h2><div class="list">${S.students.map(s=>btn("parent",s.parent,"Parent of "+s.name,s.id)).join("")}</div></div>
-    <div class="card"><h2>Staff</h2><div class="list">${btn("tutor",S.tutor,"Tutor")}${btn("admin",ADMIN,"Admin")}${btn("superadmin",SUPER,"Super Admin")}</div></div>
-  </div>`;
-};
-
 // Sidebar "View as" dropdown for the Developer (also shown while previewing another account)
 function viewAsSelect(){
   if(ME.role!=="developer" && !ME.dev) return "";
@@ -1083,7 +1073,7 @@ const NAV = {
   tutor:[["tdash","Dashboard"],["students","Students"],["profiles","Student profiles"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["hours","Hours & payments"],["library","Course library"]],
   admin:[["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"]],
   superadmin:[["portal","Portal progress"],["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["hours","Tutor hours & payments"],["access","Admin access"]],
-  developer:[["dev","System"],["devdata","Data editor"],["viewas","View as"]]
+  developer:[["dev","System"],["devdata","Data editor"]]
 };
 const ALLOWED = {
   student:["dashboard","courses","course","lesson","assignments","assignment","assessments","quiz","notes","schedule"],
@@ -1091,7 +1081,7 @@ const ALLOWED = {
   tutor:["tdash","students","student","profiles","profile","log","review","assignment","schedule","hours","library","course","lesson"],
   admin:["adash","student","profiles","profile","schedule"],
   superadmin:["portal","adash","student","profiles","profile","schedule","hours","access"],
-  developer:["dev","devdata","viewas"]
+  developer:["dev","devdata"]
 };
 // Pages the Admin only sees when the Super Admin allows it
 const NEEDS = {adash:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule"};
@@ -1163,8 +1153,7 @@ document.addEventListener("click", e => {
   if(a==="permdefaults"){ S.adminPerms = defaultPerms(); S.accessLog.push({date:today(),text:"Admin access reset to defaults"}); save(); toast("Admin access reset to defaults"); render(); }
   if(a==="retake"){ lastQuiz = null; render(); window.scrollTo(0,0); }
   if(a==="csv"){ downloadCsv(b.dataset.kind); toast("Download started"); }
-  if(a==="viewas" && ME?.role==="developer"){ ME = {role:b.dataset.role, student:b.dataset.student||null, dev:true}; saveMe(); location.hash = "#/"+NAV[ME.role][0][0]; render(); }
-  if(a==="devback"){ ME = {role:"developer"}; saveMe(); location.hash = "#/viewas"; render(); }
+  if(a==="devback"){ switchView("developer"); }
   if(a==="devrevert"){ render(); toast("Edits discarded"); }
   if(a==="devclearerr"){ try{ localStorage.removeItem(ERR_KEY); }catch(e){} logDev("Cleared the error log"); save(); toast("Error log cleared"); render(); }
   if(a==="devexport"){ const blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"}); const l = document.createElement("a");
