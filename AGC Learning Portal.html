@@ -977,14 +977,14 @@ const NAV = {
   parent:[["overview","Overview"],["notes","Session notes"],["schedule","Schedule"],["packages","Packages & balance"]],
   tutor:[["tdash","Dashboard"],["students","Students"],["profiles","Student profiles"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["hours","Hours & payments"],["library","Course library"]],
   admin:[["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"]],
-  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["access","Admin access"]]
+  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["hours","Tutor hours & payments"],["access","Admin access"]]
 };
 const ALLOWED = {
   student:["dashboard","courses","course","lesson","assignments","assignment","assessments","quiz","notes","schedule"],
   parent:["overview","notes","schedule","packages"],
   tutor:["tdash","students","student","profiles","profile","log","review","assignment","schedule","hours","library","course","lesson"],
   admin:["adash","student","profiles","profile","schedule"],
-  superadmin:["portal","adash","student","profiles","profile","schedule","access"]
+  superadmin:["portal","adash","student","profiles","profile","schedule","hours","access"]
 };
 // Pages the Admin only sees when the Super Admin allows it
 const NEEDS = {adash:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule"};
