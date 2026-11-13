@@ -219,6 +219,14 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-of
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .table-wrap{overflow-x:auto}
 
+/* Package renewal */
+.renew-cta{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px;border-left:4px solid var(--gold)}
+.renew-panel{border:2px solid var(--gold);margin-bottom:8px;scroll-margin-top:80px}
+.renew-ok{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;margin:16px 0;cursor:pointer}
+.renew-ok input{width:18px;height:18px;margin-top:3px;flex:none;accent-color:var(--navy)}
+.pkg-buy{display:flex;align-items:center;gap:14px}
+.pkg-buy .btn{min-width:84px}
+
 /* Calendar */
 .cal-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:14px 18px}
 .cal-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -501,7 +509,7 @@ function balanceCard(s, hero){
     <div class="big">${r} <small>of ${s.pkg.total} sessions left</small></div>
     <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
     <div class="small muted">${esc(s.pkg.name)} · ${s.pkg.used} used</div>
-    ${r<=2?`<p class="small" style="margin:10px 0 0;color:${hero?"#E6C27E":"var(--warn)"}">${r===0?"No sessions left.":"Running low."} Renew a package to keep your schedule.</p>`:""}
+    ${r<=2?`<p class="small" style="margin:10px 0 0;color:${hero?"#E6C27E":"var(--warn)"}">${r===0?"No sessions left.":"Running low."} ${ME?.role==="parent"?`<a href="#/packages" style="color:inherit;font-weight:600">Renew a package</a>`:"Renew a package"} to keep your schedule.</p>`:""}
   </div>`;
 }
 const SOURCES = ["Referral from a friend","Google search","Facebook or Instagram","School recommendation","Returning family","Walk-in","Other"];
@@ -565,7 +573,8 @@ function billingCard(s){
     <span class="tag ${!b.owed?"ok":b.urgent?"warn":"gold"}" style="display:inline-block;margin:8px 0 14px">${b.status}</span>
     <div class="list">
       ${line("Package", esc(p.name))}
-      ${line("Package price", money(p.price||0))}
+      ${line("Package price", money((p.price||0)-(p.prevOwed||0)))}
+      ${p.prevOwed?line("Unpaid from previous package", money(p.prevOwed)):""}
       ${line("Paid so far", money(p.paid||0))}
       ${b.owed?line("Payment due date", p.due?fmtLong(p.due):"Not set"):""}
       ${line("Sessions availed", `${p.used} of ${p.total} · ${money(b.availed)}`)}
@@ -761,15 +770,58 @@ V.overview = () => {
     <div class="card"><h2>Latest session note</h2>${note?`<h3>${esc(note.focus)}</h3><div class="label" style="margin-bottom:8px">${fmtLong(note.date)}</div><p class="small">${esc(note.summary)}</p>${note.next?`<p class="small"><b style="font-family:var(--display)">Next steps:</b> ${esc(note.next)}</p>`:""}<a class="linkish" href="#/notes">Read all notes</a>`:`<p class="muted">Notes appear after each session.</p>`}</div>
   </div>`;
 };
+// Package renewal: the parent picks a package, reviews it, then confirms
+let RENEW = null; // name of the package being reviewed
+const RENEW_DUE_DAYS = 7;
+const validDays = n => Math.max(30, n*7); // a new package stays valid 1 week per session (min. 30 days)
+function renewPlan(s, p){
+  const carry = remaining(s), old = billing(s).owed;
+  return {name:p[0], sessions:p[2], carry, total:p[2]+carry, price:p[4], old, due:dayOffset(RENEW_DUE_DAYS), expires:dayOffset(validDays(p[2]+carry))};
+}
+function renewPanel(s){
+  const p = PACKAGES.find(x => x[0]===RENEW); if(!p) return "";
+  const r = renewPlan(s, p), same = p[0]===s.pkg.name;
+  const line = (k,v,strong) => `<div class="row"><span class="small ${strong?"":"muted"}">${k}</span><span class="small" style="font-family:var(--display);font-weight:${strong?700:500};text-align:right">${v}</span></div>`;
+  return `<form class="card renew-panel" data-form="renew" data-pkg="${esc(p[0])}" id="renew">
+    <div class="label">${same?"Renew your package":"Switch & renew"}</div>
+    <h2 style="margin:4px 0 2px">${esc(p[0])}</h2><p class="small muted" style="margin:0 0 12px">${esc(s.name)} · ${p[1]} at $${p[3]}/session</p>
+    <div class="list">
+      ${line("New sessions", p[2])}
+      ${r.carry?line("Unused sessions carried over", "+"+r.carry):""}
+      ${line("Total sessions", r.total, true)}
+      ${line("Package price", money(r.price))}
+      ${r.old?line("Unpaid balance from current package", money(r.old)):""}
+      ${line("Amount due", money(r.price + r.old), true)}
+      ${line("Payment due by", fmtLong(r.due))}
+      ${line("Package valid until", fmtLong(r.expires))}
+    </div>
+    <label class="renew-ok"><input type="checkbox" name="agree" required> I understand AGC Tutorials will send an invoice for ${money(r.price + r.old)}, due ${fmt(r.due)}.</label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary">Confirm renewal</button><button type="button" class="btn btn-ghost" data-act="renewcancel">Cancel</button></div>
+  </form>`;
+}
 V.packages = () => {
   const s = currentStudent();
-  const P = PACKAGES;
-  return `<div class="head"><h1>Packages &amp; balance</h1><p>Track sessions used, what you owe and when it's due, and compare packages when it's time to renew.</p></div>
+  const P = PACKAGES, hist = (s.pkgHistory||[]).slice().reverse();
+  const canRenew = ME.role==="parent";
+  return `<div class="head"><h1>Packages &amp; balance</h1><p>Track sessions used, what you owe and when it's due, and renew or switch packages when it's time.</p></div>
   <div class="grid g2" style="margin-bottom:28px">${balanceCard(s,true)}${billingCard(s)}</div>
-  <h2 class="section-title">Compare packages</h2>
-  <div class="card table-wrap"><div class="list">${P.map(p=>`<div class="row"><div><h4>${p[0]}${p[0]===s.pkg.name?' <span class="tag gold">Current</span>':""}</h4><div class="meta">${p[1]} · $${p[3]}/session</div></div><div style="text-align:right;font-family:var(--display)"><b>$${p[4].toLocaleString()}</b>${p[5]?`<div class="small" style="color:var(--gold-text)">Save $${p[5].toLocaleString()}</div>`:""}</div></div>`).join("")}</div></div>
-  <p class="small muted" style="margin-top:14px">To renew or change packages, contact AGC Tutorials or use the cart on our website.</p>`;
+  ${canRenew?`<div class="card renew-cta"><div><h2 style="margin:0">Renew ${esc(s.pkg.name)}</h2><p class="small muted" style="margin:4px 0 0">${remaining(s)} unused session${remaining(s)===1?"":"s"} will carry over to the new package.</p></div>
+    <button class="btn btn-primary" data-act="renewpick" data-pkg="${esc(s.pkg.name)}">Renew this package</button></div>`:""}
+  ${canRenew?renewPanel(s):""}
+  <h2 class="section-title">${canRenew?"Compare &amp; switch packages":"Compare packages"}</h2>
+  <div class="card table-wrap"><div class="list">${P.map(p=>`<div class="row"><div><h4>${p[0]}${p[0]===s.pkg.name?' <span class="tag gold">Current</span>':""}</h4><div class="meta">${p[1]} · $${p[3]}/session</div></div><div class="pkg-buy"><div style="text-align:right;font-family:var(--display)"><b>$${p[4].toLocaleString()}</b>${p[5]?`<div class="small" style="color:var(--gold-text)">Save $${p[5].toLocaleString()}</div>`:""}</div>${canRenew?`<button class="btn ${p[0]===RENEW?"btn-primary":"btn-ghost"} btn-sm" data-act="renewpick" data-pkg="${esc(p[0])}">${p[0]===s.pkg.name?"Renew":"Choose"}</button>`:""}</div></div>`).join("")}</div></div>
+  ${hist.length?`<h2 class="section-title">Past packages</h2><div class="card"><div class="list">${hist.map(h=>`<div class="row"><div><h4>${esc(h.name)}</h4><div class="meta">${h.used} of ${h.total} sessions used · ${money(h.paid||0)} of ${money(h.price||0)} paid${h.carried?` · ${h.carried} carried over`:""}</div></div><span class="small muted" style="white-space:nowrap">Renewed ${fmt(h.renewed)}</span></div>`).join("")}</div></div>`:""}
+  <p class="small muted" style="margin-top:14px">Questions about packages? Contact AGC Tutorials${canRenew?"":" or use the cart on our website"}.</p>`;
 };
+function confirmRenewal(s, name){
+  const p = PACKAGES.find(x => x[0]===name); if(!p) return;
+  const r = renewPlan(s, p), old = s.pkg;
+  (s.pkgHistory ||= []).push({...old, carried:r.carry, renewed:today()});
+  s.pkg = {name:p[0], total:r.total, used:0, price:r.price + r.old, paid:0, due:r.due, expires:r.expires, ...(r.old?{prevOwed:r.old}:{})};
+  (S.renewals ||= []).push({id:uid("rn"), student:s.id, date:today(), from:old.name, to:p[0], sessions:p[2], carried:r.carry, amount:r.price + r.old, by:s.parent});
+  RENEW = null; save();
+  toast(`Renewed: ${p[0]} · ${r.total} sessions · ${money(r.price + r.old)} due ${fmt(r.due)}`);
+}
 
 /* ---------- views: tutor hours & payments ---------- */
 const RATE = 43; // tutor hourly rate per 60-minute session
@@ -1046,7 +1098,8 @@ V.portal = () => {
   const avg = avgScore(S.results), granted = PERMS.filter(p=>S.adminPerms[p[0]]);
   const acts = [...S.notes.map(n=>({d:n.date,t:`Session logged for ${stu(n.student)?.name||"a student"}`,m:n.focus})),
     ...S.results.map(r=>({d:r.date,t:`${stu(r.student)?.name||"A student"} took ${S.quizzes[r.quiz]?.title||"an assessment"}`,m:`Scored ${r.score}/${r.total}`})),
-    ...S.accessLog.map(l=>({d:l.date,t:l.text,m:"Admin access"}))].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,8);
+    ...S.accessLog.map(l=>({d:l.date,t:l.text,m:"Admin access"})),
+    ...(S.renewals||[]).map(r=>({d:r.date,t:`${r.by} renewed ${stu(r.student)?.name||"a student"}'s package`,m:`${r.from} → ${r.to} · ${r.sessions} sessions${r.carried?` + ${r.carried} carried over`:""} · ${money(r.amount)} invoiced`}))].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,8);
   const line = (k,v) => `<div class="row"><span class="small muted">${k}</span><span class="small" style="font-family:var(--display);font-weight:500;text-align:right">${v}</span></div>`;
   return `<div class="head"><h1>${greeting()}, ${esc(SUPER.split(" ")[0])}</h1><p>How the whole AGC Learning Portal is doing: learning, sessions, payments and admin access.</p></div>
   <div class="grid g4">
@@ -1075,7 +1128,7 @@ V.access = () => `<div class="head"><h1>Admin access</h1><p>Choose what ${esc(AD
   </div>`;
 /* ---------- views: developer ---------- */
 const DEV = "Developer", ERR_KEY = "agc-lms-errors";
-const DATA_KEYS = [["students","Students & packages"],["sessions","Scheduled sessions"],["notes","Session notes"],["assignments","Assignments"],["results","Assessment results"],["pay","Tutor hours & payments"],["unavail","Tutor unavailability"],["adminPerms","Admin permissions"],["accessLog","Admin access history"],["devLog","Developer log"],["courses","Courses & lessons"],["quizzes","Assessments"]];
+const DATA_KEYS = [["students","Students & packages"],["sessions","Scheduled sessions"],["notes","Session notes"],["assignments","Assignments"],["results","Assessment results"],["pay","Tutor hours & payments"],["unavail","Tutor unavailability"],["renewals","Package renewals"],["adminPerms","Admin permissions"],["accessLog","Admin access history"],["devLog","Developer log"],["courses","Courses & lessons"],["quizzes","Assessments"]];
 function getErrors(){ try { return JSON.parse(localStorage.getItem(ERR_KEY)) || []; } catch(e) { return []; } }
 function logError(msg, where){ try { const l = getErrors(); l.push({at:new Date().toISOString(), msg:String(msg).slice(0,300), where:where||location.hash||"#/"}); localStorage.setItem(ERR_KEY, JSON.stringify(l.slice(-50))); } catch(e){} }
 window.addEventListener("error", e => logError(e.message, location.hash));
@@ -1278,6 +1331,8 @@ document.addEventListener("click", e => {
   if(a==="calday"){ CAL.day = b.dataset.d; render(); }
   if(a==="calmove"){ const [y,m] = CAL.ym.split("-").map(Number); const d = new Date(y, m-1+Number(b.dataset.n), 1); CAL.ym = iso(d).slice(0,7); CAL.day = CAL.ym===today().slice(0,7) ? today() : iso(d); render(); }
   if(a==="avdel" && canAvail()){ S.unavail = (S.unavail||[]).filter(x => x.id!==b.dataset.id); save(); toast("Unavailable time removed"); render(); }
+  if(a==="renewpick" && ME?.role==="parent"){ RENEW = b.dataset.pkg; render(); document.getElementById("renew")?.scrollIntoView({behavior:"smooth",block:"start"}); }
+  if(a==="renewcancel"){ RENEW = null; render(); }
   if(a==="caltoday"){ CAL = {ym:today().slice(0,7), day:today()}; render(); }
   if(a==="devrevert"){ render(); toast("Edits discarded"); }
   if(a==="devclearerr"){ try{ localStorage.removeItem(ERR_KEY); }catch(e){} logDev("Cleared the error log"); save(); toast("Error log cleared"); render(); }
@@ -1334,6 +1389,7 @@ document.addEventListener("submit", e => {
     if(key==="students" && v.some(s => !s || !s.id || !s.name || !s.pkg || !Array.isArray(s.courses) || !Array.isArray(s.done))){ toast("Not saved: every student needs id, name, pkg, courses and done"); return; }
     S[key] = v; logDev(`Edited ${(DATA_KEYS.find(x=>x[0]===key)||[key,key])[1]}`); save();
     const w = healthChecks().filter(i=>i[0]==="warn").length; toast(w ? `Saved · ${w} health warning${w>1?"s":""} to review` : "Saved · all health checks pass"); render(); }
+  if(kind==="renew"){ if(ME?.role!=="parent") return; confirmRenewal(currentStudent(), f.dataset.pkg); render(); window.scrollTo(0,0); }
   if(kind==="avail"){ if(!canAvail()) return;
     const allDay = !!d.allday, start = allDay ? "00:00" : d.start, end = allDay ? "24:00" : d.end;
     if(end <= start){ toast("End time must be after the start time"); return; }
@@ -1349,7 +1405,7 @@ document.addEventListener("submit", e => {
   if(kind==="hours"){ HP = {status:d.status, student:d.student, from:d.from<=d.to?d.from:d.to, to:d.from<=d.to?d.to:d.from}; render(); }
   if(kind==="session"){ S.sessions.push({id:uid("ss"),student:d.student,date:d.date,time:d.time,subject:d.subject.trim(),service:d.service,mode:d.mode}); save(); toast("Session scheduled"); render(); }
 });
-window.addEventListener("hashchange", () => { if(route().name!=="quiz") lastQuiz=null; render(); window.scrollTo(0,0); });
+window.addEventListener("hashchange", () => { if(route().name!=="quiz") lastQuiz=null; if(route().name!=="packages") RENEW=null; render(); window.scrollTo(0,0); });
 render();
 </script>
 </body>
