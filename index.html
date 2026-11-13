@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#0B2545; --gold:#C59B4E; --cream:#F9F7F2; --tan:#D1C2A5;
+  --navy:#0B2545; --gold:#C59B4E; --red:#C62828; --red-dark:#8E1B1B; --cream:#F9F7F2; --tan:#D1C2A5;
   --bg:#F9F7F2; --surface:#FFFFFF; --surface-2:#F2EDE2; --ink:#0B2545; --ink-soft:#3B4A61;
   --gold-text:#8A6424; --line:#D1C2A5; --btn-bg:#0B2545; --btn-ink:#F9F7F2; --plate:#F6F0E4;
   --side:#0B2545; --side-ink:#E9EDF3; --side-soft:#9FB0C6; --step-empty:#E7DFCE;
@@ -225,7 +225,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-of
 .cal-title{margin:0 8px;font-size:1.2rem;min-width:9.5em;text-align:center}
 .cal-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--ink-soft);font-family:var(--display)}
 .cal-key{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle;background:var(--line)}
-.cal-key.gold{background:var(--gold)}.cal-key.ok{background:var(--ok)}
+.cal-key.gold{background:var(--gold)}.cal-key.sched{background:var(--red)}.cal-key.ok{background:var(--ok)}
 .cal-wrap{padding:14px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .cal-head div{font-family:var(--display);font-size:.78rem;color:var(--ink-soft);text-align:center;padding:2px 0 8px;text-transform:uppercase;letter-spacing:.04em}
@@ -236,7 +236,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-of
 .is-today .cal-num{background:var(--navy);color:#F3EEE3}
 .is-sel{border:2px solid var(--gold);padding:5px}
 .cal-chip{font-family:var(--display);font-size:.72rem;line-height:1.3;border-radius:4px;padding:2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid var(--line);background:var(--surface);color:var(--ink)}
-.cal-chip.gold{border-left-color:var(--gold)}.cal-chip.ok{border-left-color:var(--ok)}
+.cal-chip.gold{border-left-color:var(--gold)}
+.cal-chip.sched{background:var(--red);color:#fff;font-weight:600;border-left-color:var(--red-dark)}
+.tag.sched{background:var(--red);border-color:var(--red);color:#fff}.cal-chip.ok{border-left-color:var(--ok)}
 .cal-more{font-size:.7rem;color:var(--ink-soft);font-family:var(--display)}
 .cal-chip.av{border:1px solid var(--warn);border-left:3px solid var(--warn);color:var(--warn);background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(154,91,18,.10) 5px 10px)}
 .cal-key.av{background:repeating-linear-gradient(135deg,var(--warn) 0 2px,transparent 2px 4px);border:1px solid var(--warn)}
@@ -263,7 +265,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-of
   .cal-cell{min-height:58px;align-items:center;padding:4px}
   .is-sel{padding:3px}
   .cal-chip,.cal-more{display:none}
-  .cal-dot{display:grid;place-items:center;min-width:20px;height:20px;border-radius:999px;background:var(--gold);color:#0B2545;font-size:.72rem;font-weight:600;font-family:var(--display)}
+  .cal-dot{display:grid;place-items:center;min-width:20px;height:20px;border-radius:999px;background:var(--ok);color:var(--bg);font-size:.72rem;font-weight:600;font-family:var(--display)}
+  .cal-dot.sched{background:var(--red);color:#fff}
   .cal-wrap{padding:8px}.cal-grid{gap:3px}
   .cal-title{order:-1;width:100%;min-width:0;margin:0 0 2px;text-align:left;font-size:1.1rem}
 }
@@ -860,7 +863,7 @@ function calEvents(){
   Object.values(ev).forEach(l => l.sort((a,b) => (a.time||"99").localeCompare(b.time||"99")));
   return ev;
 }
-const calTag = k => k==="Attended" ? "ok" : k==="Scheduled" ? "gold" : "";
+const calTag = k => k==="Attended" ? "ok" : k==="Scheduled" ? "sched" : "";
 // Tutor unavailability: blocked-off times when the tutor can't take sessions
 const canAvail = () => ME.role==="tutor" || ME.role==="superadmin";
 const availOn = d => (S.unavail ||= []).filter(a => a.date===d).sort((a,b)=>a.start.localeCompare(b.start));
@@ -897,7 +900,7 @@ V.calendar = () => {
       <span class="cal-num">${d}</span>
       ${chips.slice(0,3).join("")}
       ${chips.length>3?`<span class="cal-more">+${chips.length-3} more</span>`:""}
-      <span class="cal-dots">${av.length?`<span class="cal-avdot" title="Unavailable"></span>`:""}${l.length?`<span class="cal-dot">${l.length}</span>`:""}</span></button>`);
+      <span class="cal-dots">${av.length?`<span class="cal-avdot" title="Unavailable"></span>`:""}${l.length?`<span class="cal-dot${l.some(e=>e.kind==="Scheduled")?" sched":""}">${l.length}</span>`:""}</span></button>`);
   }
   const dayEv = ev[CAL.day] || [], dayAv = availOn(CAL.day);
   const monthAv = (S.unavail||[]).filter(a => a.date.startsWith(CAL.ym)).length;
@@ -908,7 +911,7 @@ V.calendar = () => {
       <h2 class="cal-title">${label}</h2>
       <button class="btn btn-ghost btn-sm" data-act="calmove" data-n="1" aria-label="Next month">Next ›</button>
       <button class="btn btn-ghost btn-sm" data-act="caltoday">Today</button></div>
-    <div class="cal-legend small"><span><i class="cal-key gold"></i>Scheduled ${monthEv.filter(e=>e.kind==="Scheduled").length}</span><span><i class="cal-key ok"></i>Attended ${monthEv.filter(e=>e.kind==="Attended").length}</span><span><i class="cal-key av"></i>Unavailable ${monthAv}</span>${ME.role==="tutor"?`<a class="btn btn-ghost btn-sm" href="#/schedule">Schedule a session</a>`:""}${availDropdown()}</div>
+    <div class="cal-legend small"><span><i class="cal-key sched"></i>Scheduled ${monthEv.filter(e=>e.kind==="Scheduled").length}</span><span><i class="cal-key ok"></i>Attended ${monthEv.filter(e=>e.kind==="Attended").length}</span><span><i class="cal-key av"></i>Unavailable ${monthAv}</span>${ME.role==="tutor"?`<a class="btn btn-ghost btn-sm" href="#/schedule">Schedule a session</a>`:""}${availDropdown()}</div>
   </div>
   <div class="card cal-wrap">
     <div class="cal-grid cal-head">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>`<div>${d}</div>`).join("")}</div>
