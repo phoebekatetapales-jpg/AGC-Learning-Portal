@@ -59,6 +59,27 @@ button,input,select,textarea{font:inherit;color:inherit}
 .role span{font-size:.93rem;color:var(--ink-soft)}
 .role em{font-family:var(--display);font-style:normal;font-size:.85rem;color:var(--gold-text);margin-top:6px}
 .login .foot{text-align:center;font-family:var(--display);font-size:.85rem;color:var(--ink-soft);margin-top:26px}
+.login-card.narrow{width:min(440px,100%)}
+.login-form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 26px}
+.login-form .field input{background:var(--bg)}
+.pw{position:relative}
+.pw input{padding-right:70px}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:6px 10px;cursor:pointer;font-family:var(--display);font-size:.82rem;color:var(--gold-text)}
+.login-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:-2px 0 18px;font-size:.88rem}
+.login-row label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.login-row input{accent-color:var(--navy);width:16px;height:16px}
+.login-row a{color:var(--gold-text)}
+.login-err{background:rgba(198,40,40,.08);border:1px solid rgba(198,40,40,.35);color:var(--red);border-radius:8px;padding:10px 12px;font-size:.9rem;margin-bottom:14px}
+.login-err[hidden]{display:none}
+.login-form .btn{width:100%;padding:12px 18px}
+.demo{margin-top:18px;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 16px;font-size:.88rem}
+.demo summary{cursor:pointer;font-family:var(--display);color:var(--ink-soft)}
+.demo p{margin:10px 0 8px;color:var(--ink-soft)}
+.demo ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.demo li button{width:100%;display:flex;flex-direction:column;gap:0;background:none;border:0;border-radius:6px;padding:6px 8px;cursor:pointer;text-align:left}
+.demo li button:hover{background:var(--surface-2)}
+.demo li span{color:var(--ink-soft);font-size:.82rem}
+.demo li b{font-weight:500;word-break:break-all}
 .roles-2{grid-template-columns:repeat(2,1fr);max-width:520px;margin:0 auto}
 .viewas{padding:14px 6px 16px;border-top:1px solid rgba(255,255,255,.1);font-family:var(--display)}
 .viewas label{display:block;font-size:.8rem;color:var(--side-soft);margin-bottom:6px}
@@ -185,7 +206,7 @@ main{padding:clamp(22px,4vw,44px) clamp(18px,4vw,48px) 60px;min-width:0}
 /* Forms */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .field label{font-family:var(--display);font-size:.88rem;font-weight:500}
-input[type=text],input[type=email],input[type=number],input[type=date],input[type=time],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=time],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
 textarea{min-height:110px;resize:vertical;line-height:1.55}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
 .form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
@@ -1278,23 +1299,54 @@ const NEEDS = {adash:"viewStudents", student:"viewStudents", profiles:"viewProfi
 const navFor = role => NAV[role].filter(([k]) => role!=="admin" || !NEEDS[k] || can(NEEDS[k]));
 function route(){ const h = location.hash.replace(/^#\/?/,""); const [name,...args] = h.split("/"); return {name,args}; }
 
+/* ---------- Login (email + password) ----------
+   DEMO ONLY: there is no server, so accounts and the password live in this page and anyone can read them.
+   Before real families use the portal, sign-in must move to a real service (e.g. Supabase Auth). */
+const DEMO_PASSWORD = "agc2026";
+const slug = n => String(n||"").toLowerCase().normalize("NFD").replace(/[^a-z0-9 ]/g,"").trim().replace(/ +/g,".");
+function accounts(){
+  const list = [
+    {email:"rconcepcion@agctutorials.com", role:"tutor", label:"Tutor · "+S.tutor},
+    {email:"admin@agctutorials.com", role:"admin", label:"Admin · "+ADMIN},
+    {email:"superadmin@agctutorials.com", role:"superadmin", label:"Super Admin · "+SUPER},
+    {email:"developer@agctutorials.com", role:"developer", label:"Developer"}
+  ];
+  S.students.forEach(s => {
+    list.push({email:slug(s.name)+"@students.agctutorials.com", role:"student", student:s.id, label:"Student · "+s.name});
+    if(s.parentEmail && !list.some(a=>a.email===s.parentEmail.toLowerCase())) list.push({email:s.parentEmail.toLowerCase(), role:"parent", student:s.id, label:"Parent · "+s.parent});
+  });
+  return list;
+}
 function renderLogin(){
-  document.getElementById("root").innerHTML = `<div class="login"><div class="login-card">
+  const accts = accounts();
+  document.getElementById("root").innerHTML = `<div class="login"><div class="login-card narrow">
     <div class="login-logo"><img src="${LOGO}" alt="AGC Tutorials — Aspire. Grow. Conquer."></div>
-    <h1>AGC Learning Portal</h1><p class="sub">Lessons, session notes and progress in one place.</p>
-    <div class="roles">
-      <button class="role" data-act="login" data-role="student" data-student="s1"><b>Student</b><span>Take lessons, submit assignments and complete assessments.</span><em>Sign in as Maya Santos</em></button>
-      <button class="role" data-act="login" data-role="parent" data-student="s1"><b>Parent</b><span>Follow progress, read session notes and track your balance.</span><em>Sign in as Ana Santos</em></button>
-      <button class="role" data-act="login" data-role="tutor"><b>Tutor</b><span>Log sessions, grade work and manage your students.</span><em>Sign in as Rochelle Concepcion</em></button>
-    </div>
-    <div class="label" style="text-align:center;margin:26px 0 12px">Staff</div>
-    <div class="roles">
-      <button class="role" data-act="login" data-role="admin"><b>Admin</b><span>Oversee every student's details, progress and results.</span><em>Sign in as ${esc(ADMIN)}</em></button>
-      <button class="role" data-act="login" data-role="superadmin"><b>Super Admin</b><span>See how the whole portal is doing and control what the Admin can access.</span><em>Sign in as ${esc(SUPER)}</em></button>
-      <button class="role" data-act="login" data-role="developer"><b>Developer</b><span>Check system health, fix data, back up the portal and view it as any account.</span><em>Sign in as ${esc(DEV)}</em></button>
-    </div>
-    <p class="foot">Demo accounts · Changes are saved in this browser · <button data-act="reset" style="background:none;border:0;color:var(--gold-text);cursor:pointer;text-decoration:underline;font:inherit">Reset demo data</button></p>
+    <h1>Log in</h1><p class="sub">Welcome to the AGC Learning Portal.</p>
+    <form class="login-form" id="loginForm" novalidate>
+      <div class="login-err" role="alert" hidden></div>
+      <div class="field"><label for="le">Email</label><input type="email" id="le" name="email" autocomplete="username" required></div>
+      <div class="field"><label for="lp">Password</label><div class="pw"><input type="password" id="lp" name="password" autocomplete="current-password" required><button type="button" data-act="togglepw" aria-controls="lp" aria-pressed="false">Show</button></div></div>
+      <div class="login-row"><label><input type="checkbox" name="remember" checked> Keep me logged in</label><a href="mailto:rconcepcion@agctutorials.com?subject=${encodeURIComponent("AGC Learning Portal password help")}">Forgot password?</a></div>
+      <button type="submit" class="btn btn-primary">Log in</button>
+    </form>
+    <details class="demo"><summary>Demo accounts</summary>
+      <p>Every demo account uses the password <b>${DEMO_PASSWORD}</b>. Click one to fill it in.</p>
+      <ul>${accts.map(a=>`<li><button type="button" data-act="demofill" data-email="${esc(a.email)}"><b>${esc(a.email)}</b><span>${esc(a.label)}</span></button></li>`).join("")}</ul>
+    </details>
+    <p class="foot">Changes are saved in this browser · <button data-act="reset" style="background:none;border:0;color:var(--gold-text);cursor:pointer;text-decoration:underline;font:inherit">Reset demo data</button></p>
   </div></div>`;
+  const f = document.getElementById("loginForm"), err = f.querySelector(".login-err");
+  f.addEventListener("input", () => { err.hidden = true; });
+  f.addEventListener("submit", e => {
+    e.preventDefault();
+    const email = f.email.value.trim().toLowerCase(), pw = f.password.value;
+    if(!email || !pw){ err.textContent = "Enter your email and password."; err.hidden = false; (email?f.password:f.email).focus(); return; }
+    const a = accounts().find(x => x.email === email);
+    if(!a || pw !== DEMO_PASSWORD){ err.textContent = "That email and password don't match. Check them and try again."; err.hidden = false; f.password.value = ""; f.password.focus(); return; }
+    ME = {role:a.role, student:a.student||null, email:a.email};
+    if(f.remember.checked) saveMe(); else { try{ localStorage.removeItem(ME_KEY); }catch(e2){} }
+    location.hash = "#/"+NAV[ME.role][0][0]; render();
+  });
 }
 function whoLabel(){
   if(ME.role==="tutor") return {n:S.tutor,r:"Founder & Tutor"};
@@ -1323,7 +1375,7 @@ function render(){
     <aside class="side" id="side"><div class="logo"><img src="${LOGO}" alt="AGC Tutorials"></div>
       <nav aria-label="Main">${navFor(ME.role).map(([k,l])=>{const badge=k==="review"&&pending?`<span class="pill">${pending}</span>`:k==="assignments"&&todo?`<span class="pill">${todo}</span>`:"";return `<a href="#/${k}" ${k===active?'aria-current="page"':""}>${l}${badge}</a>`}).join("")}</nav>
       ${viewAsSelect()}
-      <div class="who"><b>${esc(w.n)}</b><span>${esc(w.r)}</span><br><button data-act="logout">Switch account</button></div>
+      <div class="who"><b>${esc(w.n)}</b><span>${esc(w.r)}</span><br><button data-act="logout">Log out</button></div>
     </aside>
     <main><div class="page">${html}</div></main></div>`;
   document.querySelector("main").focus?.();
@@ -1335,6 +1387,8 @@ document.addEventListener("click", e => {
   const a = b.dataset.act;
   if(a==="login"){ ME = {role:b.dataset.role, student:b.dataset.student||null}; saveMe(); location.hash = "#/"+NAV[ME.role][0][0]; render(); }
   if(a==="logout"){ ME = null; saveMe(); location.hash = ""; render(); }
+  if(a==="togglepw"){ const i = document.getElementById("lp"), show = i.type==="password"; i.type = show?"text":"password"; b.textContent = show?"Hide":"Show"; b.setAttribute("aria-pressed", String(show)); i.focus(); }
+  if(a==="demofill"){ const f = document.getElementById("loginForm"); f.email.value = b.dataset.email; f.password.value = DEMO_PASSWORD; f.querySelector(".login-err").hidden = true; f.querySelector('button[type="submit"]').focus(); }
   if(a==="reset"){ S = seed(); save(); toast("Demo data reset"); }
   if(a==="menu"){ document.getElementById("side").classList.add("open"); document.querySelector(".scrim").classList.add("show"); b.setAttribute("aria-expanded","true"); }
   if(a==="closemenu"){ document.getElementById("side").classList.remove("open"); b.classList.remove("show"); }
