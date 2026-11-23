@@ -1,0 +1,38 @@
+/* =====================================================================
+   AGC Learning Portal — Base: colour tokens (light + dark), fonts, resets.
+   Load order: base.css → login.css → layout.css → pages.css
+   ===================================================================== */
+
+:root{
+  --navy:#0B2545; --gold:#C59B4E; --red:#C62828; --red-dark:#8E1B1B; --cream:#F9F7F2; --tan:#D1C2A5;
+  --bg:#F9F7F2; --surface:#FFFFFF; --surface-2:#F2EDE2; --ink:#0B2545; --ink-soft:#3B4A61;
+  --gold-text:#8A6424; --line:#D1C2A5; --btn-bg:#0B2545; --btn-ink:#F9F7F2; --plate:#F6F0E4;
+  --side:#0B2545; --side-ink:#E9EDF3; --side-soft:#9FB0C6; --step-empty:#E7DFCE;
+  --ok:#2F6B4F; --warn:#9A5B12;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#07182E; --surface:#0E2744; --surface-2:#0B213B; --ink:#F3EEE3; --ink-soft:#C3CBD8;
+    --gold-text:#D9B36B; --line:#2B4466; --btn-bg:#C59B4E; --btn-ink:#0B2545;
+    --side:#081C35; --side-ink:#E9EDF3; --side-soft:#8FA2BC; --step-empty:#1D3656; --ok:#7CC4A0; --warn:#E3A85A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#07182E; --surface:#0E2744; --surface-2:#0B213B; --ink:#F3EEE3; --ink-soft:#C3CBD8;
+  --gold-text:#D9B36B; --line:#2B4466; --btn-bg:#C59B4E; --btn-ink:#0B2545;
+  --side:#081C35; --side-ink:#E9EDF3; --side-soft:#8FA2BC; --step-empty:#1D3656; --ok:#7CC4A0; --warn:#E3A85A;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;line-height:1.2;margin:0;letter-spacing:-.01em}
+p{margin:0 0 .9em}
+a{color:inherit}
+img{max-width:100%;display:block}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
