@@ -78,14 +78,30 @@ V.access = () => `<div class="head"><h1>Admin access</h1><p>Choose what ${esc(AD
   </div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button class="btn btn-primary">Save access</button><button type="button" class="btn btn-ghost" data-act="permdefaults">Restore defaults</button></div></form>
   <div class="card"><h2>Access history</h2>${S.accessLog.length?`<div class="list">${[...S.accessLog].reverse().slice(0,12).map(l=>`<div class="row"><div><h4>${esc(l.text)}</h4><div class="meta">by ${esc(SUPER)}</div></div><span class="small muted" style="white-space:nowrap">${fmt(l.date)}</span></div>`).join("")}</div>`:`<p class="muted" style="margin:0">No changes yet. The Admin has the default access.</p>`}</div>
   </div>`;
-// Every tutor and the students they teach (from each student's tutor list)
+// Tutors: a table of every tutor, and a page per tutor with their students
+const tutorNames = () => [...new Set([S.tutor, ...S.students.flatMap(s=>s.tutors||[])])];
+const studentsOfTutor = t => S.students.filter(s=>(s.tutors||[]).includes(t));
+const tutorStudentRow = s => { const r = remaining(s); return `<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/student/${s.id}">${esc(s.name)}</a></h4><div class="meta">${esc(s.grade)} · ${s.courses.map(c=>esc(S.courses[c]?.title||c)).join(", ")}</div></div><span class="tag ${r<=2?"warn":""}">${r} session${r===1?"":"s"} left</span></div>`; };
 V.tutors = () => {
-  const names = [...new Set([S.tutor, ...S.students.flatMap(s=>s.tutors||[])])];
-  const unassigned = S.students.filter(s=>!(s.tutors||[]).length);
-  const stuRow = s => { const r = remaining(s); return `<div class="row"><div><h4><a class="linkish" style="color:inherit" href="#/student/${s.id}">${esc(s.name)}</a></h4><div class="meta">${esc(s.grade)} · ${s.courses.map(c=>esc(S.courses[c]?.title||c)).join(", ")}</div></div><span class="tag ${r<=2?"warn":""}">${r} session${r===1?"":"s"} left</span></div>`; };
-  return `<div class="head"><h1>Tutors</h1><p>Every AGC tutor and the students they work with. To change a student's tutor, open their profile and use <b>Edit profile</b>.</p></div>
-  <div class="grid g2">${names.map(t=>{ const ss = S.students.filter(s=>(s.tutors||[]).includes(t));
-    return `<div class="card"><div class="label">${t===S.tutor?"Founder &amp; Tutor":"Tutor"}</div><h2 style="margin-top:6px">${esc(t)}</h2><div class="small muted" style="margin-bottom:8px">${ss.length} student${ss.length===1?"":"s"}</div>
-      ${ss.length?`<div class="list">${ss.map(stuRow).join("")}</div>`:`<p class="muted" style="margin:0">No students assigned yet.</p>`}</div>`; }).join("")}
-  ${unassigned.length?`<div class="card"><div class="label">Needs a tutor</div><h2 style="margin-top:6px">Unassigned students</h2><div class="list">${unassigned.map(stuRow).join("")}</div></div>`:""}</div>`;
+  const names = tutorNames(), unassigned = S.students.filter(s=>!(s.tutors||[]).length), dash = `<span class="muted">—</span>`;
+  return `<div class="head"><h1>Tutors</h1><p>Every AGC tutor and the students they work with. Select a tutor to see their students. To change a student's tutor, open their profile and use <b>Edit profile</b>.</p></div>
+  <div class="card table-wrap"><table class="tbl"><thead><tr><th scope="col">Tutor</th><th scope="col">Students</th><th scope="col">Subjects</th>${can("viewSchedule")?`<th scope="col">Upcoming sessions</th>`:""}<th scope="col">Sessions left</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>
+  ${names.map((t,i)=>{ const ss = studentsOfTutor(t), ids = ss.map(s=>s.id);
+    const subj = [...new Set(ss.flatMap(s=>s.courses.map(c=>S.courses[c]?.subject).filter(Boolean)))];
+    const up = upcoming().filter(x=>ids.includes(x.student)), next = up[0], left = ss.reduce((a,s)=>a+remaining(s),0);
+    return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/tutor/${i}">${esc(t)}</a><div class="small muted">${t===S.tutor?"Founder &amp; Tutor":"Tutor"}</div></td>
+      <td>${ss.length}${ss.length?`<div class="small muted">${ss.map(s=>esc(s.name)).join(", ")}</div>`:""}</td>
+      <td>${subj.length?esc(subj.join(", ")):dash}</td>
+      ${can("viewSchedule")?`<td>${up.length}${next?`<div class="small muted">Next: ${fmt(next.date)}, ${fmtTime(next.time)}</div>`:""}</td>`:""}
+      <td>${ss.length?left:dash}</td>
+      <td style="text-align:right"><a class="btn btn-ghost btn-sm" href="#/tutor/${i}">View</a></td></tr>`; }).join("")}
+  </tbody></table></div>
+  ${unassigned.length?`<h2 class="section-title">Students without a tutor</h2><div class="card"><div class="list">${unassigned.map(tutorStudentRow).join("")}</div></div>`:""}`;
+};
+V.tutor = (i) => {
+  const t = tutorNames()[Number(i)]; if(!t) return V.notfound();
+  const ss = studentsOfTutor(t), ids = ss.map(s=>s.id), up = upcoming().filter(x=>ids.includes(x.student));
+  return `<a class="crumb" href="#/tutors">← Tutors</a><div class="head"><div class="label">${t===S.tutor?"Founder &amp; Tutor":"Tutor"}</div><h1 style="margin-top:6px">${esc(t)}</h1><p>${ss.length} student${ss.length===1?"":"s"}${can("viewSchedule")?` · ${up.length} upcoming session${up.length===1?"":"s"}`:""}</p></div>
+  <div class="grid g2"><div class="card"><h2>Students</h2>${ss.length?`<div class="list">${ss.map(tutorStudentRow).join("")}</div>`:`<p class="muted" style="margin:0">No students assigned yet.</p>`}</div>
+    ${can("viewSchedule")?`<div class="card"><h2>Upcoming sessions</h2>${up.length?`<div class="list">${up.slice(0,8).map(x=>`<div class="row"><div><h4>${esc(stu(x.student)?.name||"")} · ${esc(x.subject)}</h4><div class="meta">${esc(x.service)} · ${esc(x.mode)}</div></div><span class="small muted" style="white-space:nowrap">${fmt(x.date)}, ${fmtTime(x.time)}</span></div>`).join("")}</div>`:`<p class="muted" style="margin:0">Nothing scheduled.</p>`}</div>`:""}</div>`;
 };

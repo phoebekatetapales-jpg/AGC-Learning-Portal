@@ -16,12 +16,12 @@ const ALLOWED = {
   parent:["overview","notes","schedule","packages"],
   // Tutors don't see student pages (progress or profiles): only Admin and Super Admin do.
   tutor:["tdash","log","review","assignment","schedule","calendar","hours","library","course","lesson"],
-  admin:["adash","tutors","student","profiles","profile","schedule","calendar"],
-  superadmin:["portal","adash","tutors","student","profiles","profile","schedule","calendar","hours","access"],
+  admin:["adash","tutors","tutor","student","profiles","profile","schedule","calendar"],
+  superadmin:["portal","adash","tutors","tutor","student","profiles","profile","schedule","calendar","hours","access"],
   developer:["dev","devdata"]
 };
 // Pages the Admin only sees when the Super Admin allows it
-const NEEDS = {adash:"viewStudents", tutors:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule", calendar:"viewSchedule"};
+const NEEDS = {adash:"viewStudents", tutors:"viewStudents", tutor:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule", calendar:"viewSchedule"};
 const navFor = role => NAV[role].filter(([k]) => role!=="admin" || !NEEDS[k] || can(NEEDS[k]));
 function route(){ const h = location.hash.replace(/^#\/?/,""); const [name,...args] = h.split("/"); return {name,args}; }
 
@@ -92,7 +92,7 @@ function render(){
   if(ME.dev){ const w0 = whoLabel(); html = `<div class="devbar"><span>Developer preview · viewing as <b>${esc(w0.n)}</b> (${esc(w0.r)})</span><button data-act="devback">Back to Developer</button></div>` + html; }
   const pending = S.assignments.filter(a=>a.status==="submitted").length;
   const todo = ME.role==="student" ? assignFor(ME.student).filter(a=>a.status==="assigned").length : 0;
-  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:ME.role==="tutor"?"students":"adash",profile:"profiles"};
+  const parentOf = {course:"courses",lesson:ME.role==="tutor"?"library":"courses",assignment:ME.role==="tutor"?"review":"assignments",quiz:"assessments",student:ME.role==="tutor"?"students":"adash",profile:"profiles",tutor:"tutors"};
   const active = parentOf[name] || name;
   const w = whoLabel();
   document.getElementById("root").innerHTML = `<div class="app">
