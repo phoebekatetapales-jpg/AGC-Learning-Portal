@@ -17,7 +17,7 @@ V.adash = () => {
   const low = ss.filter(s=>remaining(s)<=2).length;
   const owed = ss.reduce((a,s)=>a+billing(s).owed,0), overdue = ss.filter(isOverdue).length;
   const avg = avgScore(S.results);
-  const cols = ["Student","Progress","Lessons"].concat(can("viewResults")?["Avg. score"]:[],["Sessions left"],can("viewBilling")?["Balance"]:[],can("viewNotes")?["Last session"]:[]);
+  const cols = ["Student","Tutor","Progress","Lessons"].concat(can("viewResults")?["Avg. score"]:[],["Sessions left"],can("viewBilling")?["Balance"]:[],can("viewNotes")?["Last session"]:[]);
   return `<div class="head"><h1>${ME.role==="admin"?greeting()+", "+esc(ADMIN.split(" ")[0]):"Students &amp; progress"}</h1><p>Details and progress for every student at AGC Tutorials.</p></div>
   <div class="grid g4">
     ${kpi("Active students", ss.length, `${ss.reduce((a,s)=>a+s.courses.length,0)} course enrollments`, true)}
@@ -29,6 +29,7 @@ V.adash = () => {
   <div class="card table-wrap"><table class="tbl"><thead><tr>${cols.map(c=>`<th scope="col">${c}</th>`).join("")}</tr></thead><tbody>
   ${ss.map(s=>{ const o=overall(s), p=pct(o.done,o.total), r=remaining(s), b=billing(s), last=notesFor(s.id)[0], sc=avgScore(S.results.filter(x=>x.student===s.id));
     return `<tr><td><a class="linkish" style="color:inherit;font-weight:600" href="#/student/${s.id}">${esc(s.name)}</a><div class="small muted">${esc(s.grade)} · ${esc(s.parent)}</div></td>
+      <td>${s.tutors?.length?esc(tutorsOf(s)):`<span class="muted">—</span>`}</td>
       <td>${p}%${miniBar(p)}</td><td>${o.done}/${o.total}</td>
       ${can("viewResults")?`<td>${sc===null?`<span class="muted">—</span>`:sc+"%"}</td>`:""}
       <td><span class="tag ${r<=2?"warn":""}">${r} of ${s.pkg.total}</span></td>

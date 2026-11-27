@@ -78,9 +78,9 @@ function seed(){
     adminPerms:defaultPerms(), accessLog:[],
     courses, quizzes,
     students:[
-      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",profile:{birthday:"2013-10-12",school:"Lincoln Middle School",lives:"Pasadena, CA",from:"Quezon City, Philippines",enrolled:"2026-06-15",source:"Referral from a friend",parentPhone:"(555) 214-8830",emergency:"Ramon Santos (father) · (555) 214-8831",needs:"Visual learner who does best with worked examples. Gets nervous before tests."},pkg:{name:"Momentum Growth Pack",total:16,used:9,price:1360,paid:680,due:dayOffset(5),expires:dayOffset(75)},courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
-      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",profile:{birthday:"2010-02-03",school:"Westview High School",lives:"Glendale, CA",from:"Cebu City, Philippines",enrolled:"2026-08-01",source:"Google search",parentPhone:"(555) 377-1902",emergency:"Paolo Cruz (uncle) · (555) 377-4410",needs:"Preparing for AP Chemistry. Prefers online sessions on weekdays."},pkg:{name:"Sprint Growth Pack",total:8,used:6,price:720,paid:720,due:"",expires:dayOffset(21)},courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
-      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",profile:{birthday:"2017-05-21",school:"Maple Elementary",lives:"Burbank, CA",from:"Burbank, CA",enrolled:"2026-09-10",source:"School recommendation",parentPhone:"(555) 408-5567",emergency:"Elena Reyes (grandmother) · (555) 408-1120",needs:"Has an IEP for reading fluency. Short movement break every 15 minutes."},pkg:{name:"Flex Aspire Pass",total:2,used:1,price:200,paid:100,due:dayOffset(-2),expires:dayOffset(30)},courses:["read"],done:["r1"]}
+      {id:"s1",name:"Maya Santos",grade:"Grade 8",parent:"Ana Santos",parentEmail:"ana.santos@example.com",profile:{birthday:"2013-10-12",school:"Lincoln Middle School",lives:"Pasadena, CA",from:"Quezon City, Philippines",enrolled:"2026-06-15",source:"Referral from a friend",parentPhone:"(555) 214-8830",emergency:"Ramon Santos (father) · (555) 214-8831",needs:"Visual learner who does best with worked examples. Gets nervous before tests."},pkg:{name:"Momentum Growth Pack",total:16,used:9,price:1360,paid:680,due:dayOffset(5),expires:dayOffset(75)},tutors:[T],courses:["alg1","read","asc"],done:["a1","a2","a3","r1","r2","e1"]},
+      {id:"s2",name:"Ethan Cruz",grade:"Grade 11",parent:"Liza Cruz",parentEmail:"liza.cruz@example.com",profile:{birthday:"2010-02-03",school:"Westview High School",lives:"Glendale, CA",from:"Cebu City, Philippines",enrolled:"2026-08-01",source:"Google search",parentPhone:"(555) 377-1902",emergency:"Paolo Cruz (uncle) · (555) 377-4410",needs:"Preparing for AP Chemistry. Prefers online sessions on weekdays."},pkg:{name:"Sprint Growth Pack",total:8,used:6,price:720,paid:720,due:"",expires:dayOffset(21)},tutors:[T],courses:["chem","alg2","asc"],done:["c1","b1","e1","e2"]},
+      {id:"s3",name:"Sofia Reyes",grade:"Grade 4",parent:"Mark Reyes",parentEmail:"mark.reyes@example.com",profile:{birthday:"2017-05-21",school:"Maple Elementary",lives:"Burbank, CA",from:"Burbank, CA",enrolled:"2026-09-10",source:"School recommendation",parentPhone:"(555) 408-5567",emergency:"Elena Reyes (grandmother) · (555) 408-1120",needs:"Has an IEP for reading fluency. Short movement break every 15 minutes."},pkg:{name:"Flex Aspire Pass",total:2,used:1,price:200,paid:100,due:dayOffset(-2),expires:dayOffset(30)},tutors:[T],courses:["read"],done:["r1"]}
     ],
     assignments:[
       {id:"as1",student:"s1",course:"alg1",title:"Two-step equations practice",due:dayOffset(3),status:"assigned",instructions:"Solve the five equations on your worksheet and show every step on its own line. Then write one sentence explaining which operation you undo first and why."},
@@ -147,6 +147,7 @@ if(!S.accessLog) S.accessLog = [];
 Object.values(S).forEach(v => { if(v && typeof v==="object") Object.values(v).forEach(o => { if(o && o.service==="AGC Core Tutoring: In-person Specialized Tutoring") o.service = "AGC Core Tutoring"; }); });
 { const base = seed(); S.students.forEach(s => { const b = base.students.find(x=>x.id===s.id);
   if(s.parentEmail==null) s.parentEmail = b ? b.parentEmail : "";
+  if(!Array.isArray(s.tutors)) s.tutors = [S.tutor];
   if(!s.profile) s.profile = b && b.name===s.name ? {...b.profile} : {};
   if(s.pkg.price==null){ const bp = b && b.pkg.name===s.pkg.name ? b.pkg : null; const rate = (PACKAGES.find(p=>p[0]===s.pkg.name)||[])[3]||0;
     Object.assign(s.pkg, bp ? {price:bp.price,paid:bp.paid,due:bp.due,expires:bp.expires} : {price:rate*s.pkg.total,paid:0,due:"",expires:""}); } }); }
@@ -156,6 +157,8 @@ function saveMe(){ try{ ME ? localStorage.setItem(ME_KEY, JSON.stringify(ME)) : 
 
 /* ---------- data helpers ---------- */
 const stu = id => S.students.find(s => s.id === id);
+// The tutor(s) assigned to a student, as "Name, Name"
+const tutorsOf = s => (s.tutors||[]).join(", ");
 const lessonsOf = c => c.modules.flatMap(m => m.lessons);
 const courseProgress = (s, cid) => { const ls = lessonsOf(S.courses[cid]); const d = ls.filter(l => s.done.includes(l.id)).length; return {done:d,total:ls.length}; };
 const overall = s => s.courses.reduce((a,c)=>{const p=courseProgress(s,c);a.done+=p.done;a.total+=p.total;return a},{done:0,total:0});
