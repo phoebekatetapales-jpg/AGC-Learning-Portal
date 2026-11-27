@@ -6,7 +6,7 @@
 const NAV = {
   student:[["dashboard","Dashboard"],["courses","My courses"],["assignments","Assignments"],["assessments","Assessments"],["notes","Session notes"],["schedule","Schedule"]],
   parent:[["overview","Overview"],["notes","Session notes"],["schedule","Schedule"],["packages","Packages & balance"]],
-  tutor:[["tdash","Dashboard"],["students","Students"],["profiles","Student profiles"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["calendar","Calendar"],["hours","Hours & payments"],["library","Course library"]],
+  tutor:[["tdash","Dashboard"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["calendar","Calendar"],["hours","Hours & payments"],["library","Course library"]],
   admin:[["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["calendar","Calendar"]],
   superadmin:[["portal","Portal progress"],["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["calendar","Calendar"],["hours","Tutor hours & payments"],["access","Admin access"]],
   developer:[["dev","System"],["devdata","Data editor"]]
@@ -14,7 +14,8 @@ const NAV = {
 const ALLOWED = {
   student:["dashboard","courses","course","lesson","assignments","assignment","assessments","quiz","notes","schedule"],
   parent:["overview","notes","schedule","packages"],
-  tutor:["tdash","students","student","profiles","profile","log","review","assignment","schedule","calendar","hours","library","course","lesson"],
+  // Tutors don't see student pages (progress or profiles): only Admin and Super Admin do.
+  tutor:["tdash","log","review","assignment","schedule","calendar","hours","library","course","lesson"],
   admin:["adash","student","profiles","profile","schedule","calendar"],
   superadmin:["portal","adash","student","profiles","profile","schedule","calendar","hours","access"],
   developer:["dev","devdata"]
@@ -168,7 +169,7 @@ document.addEventListener("submit", e => {
     S.notes.push(n); s.pkg.used = Math.min(s.pkg.total, s.pkg.used+1); save();
     const mail = d.emailParent && email;
     toast(`Note saved · ${remaining(s)} sessions left for ${s.name.split(" ")[0]}${mail?" · opening email to "+s.parent.split(" ")[0]:d.emailParent?" · add a parent email to send notes":""}`);
-    location.hash = "#/student/"+s.id; if(mail) location.href = noteMailto(n, email); }
+    location.hash = ME.role==="tutor" ? "#/tdash" : "#/student/"+s.id; if(mail) location.href = noteMailto(n, email); }
   if(kind==="perms"){ if(ME.role!=="superadmin") return;
     const changes = PERMS.filter(p => !!d[p[0]] !== !!S.adminPerms[p[0]]).map(p => (d[p[0]]?"Allowed ":"Removed ")+p[1]);
     PERMS.forEach(p => S.adminPerms[p[0]] = !!d[p[0]]);

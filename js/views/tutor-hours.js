@@ -55,13 +55,13 @@ V.hours = () => {
     <div class="card"><div class="label">Awaiting payment</div><div class="big">${money2(unpaid)}</div><div class="small muted">Attended work not yet paid</div></div>
   </div>
   <section class="card hp-sec"><h2>Session hours</h2>
-    ${hpTable([["Date"],["Student &amp; title"],["Status"],["Hours",1],["Earnings",1],["Paid"],["Actions"]],
+    ${hpTable([["Date"],["Student &amp; title"],["Status"],["Hours",1],["Earnings",1],["Paid"],...(ME.role==="tutor"?[]:[["Actions"]])],
       rows.map(r=>`<tr><td>${mdy(r.date)}${r.time?`<div class="small muted">${fmtTime(r.time)} – ${fmtTime(plusHour(r.time))}</div>`:""}</td>
         <td><b style="font-family:var(--display);font-weight:600">${esc(r.name)}</b><div class="small muted">${esc(r.title)}</div></td>
         <td><span class="tag ${r.status==="Attended"?"ok":"gold"}">${r.status}</span></td>
         <td class="num">${r.hours.toFixed(1)}</td><td class="num">${money2(r.earn)}</td><td>${yn(r.paid)}</td>
-        <td><a class="linkish small" href="#/student/${r.student}">View student</a></td></tr>`),
-      `<tfoot><tr><td></td><td></td><td>Totals</td><td class="num">${hrs.toFixed(1)}</td><td class="num">${money2(earn)}</td><td></td><td></td></tr></tfoot>`)}
+        ${ME.role==="tutor"?"":`<td><a class="linkish small" href="#/student/${r.student}">View student</a></td>`}</tr>`),
+      `<tfoot><tr><td></td><td></td><td>Totals</td><td class="num">${hrs.toFixed(1)}</td><td class="num">${money2(earn)}</td><td></td>${ME.role==="tutor"?"":"<td></td>"}</tr></tfoot>`)}
   </section>
   <section class="card hp-sec"><h2>Other hours</h2>
     ${hpTable([["Date"],["Title"],["Hours",1],["Wage",1],["Paid"]], other.map(o=>`<tr><td>${mdy(o.date)}</td><td>${esc(o.title)}</td><td class="num">${o.hours.toFixed(1)}</td><td class="num">${money2(o.wage)}/hr</td><td>${yn(o.paid)}</td></tr>`))}
