@@ -178,6 +178,7 @@ document.addEventListener("submit", e => {
   if(kind==="profile"){ if(!can("editProfiles")) return; const s = stu(f.dataset.id);
     if(d.name.trim()) s.name = d.name.trim(); if(d.grade.trim()) s.grade = d.grade.trim(); if(d.parent.trim()) s.parent = d.parent.trim();
     s.parentEmail = d.parentEmail.trim();
+    s.tutors = (d.tutors||"").split(",").map(t=>t.trim()).filter(Boolean);
     s.profile = {birthday:d.birthday, school:d.school.trim(), lives:d.lives.trim(), from:d.from.trim(), enrolled:d.enrolled, source:d.source, parentPhone:d.parentPhone.trim(), emergency:d.emergency.trim(), needs:d.needs.trim()};
     save(); toast("Profile saved for "+s.name.split(" ")[0]); render(); }
   if(kind==="billing"){ if(!can("editBilling")) return; const s = stu(f.dataset.id);

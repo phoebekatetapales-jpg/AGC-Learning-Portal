@@ -29,6 +29,7 @@ function profileCard(s){
   return `<div class="card"><h2>Student details</h2><div class="list">
     ${line("Birthday", p.birthday ? `${fmtBday(p.birthday)} · ${age} years old${soon?` <span class="tag gold">${soon}</span>`:""}` : "")}
     ${line("Grade", esc(s.grade))}
+    ${line(s.tutors?.length>1?"Tutors":"Tutor", esc(tutorsOf(s)))}
     ${line("School", esc(p.school||""))}
     ${line("Lives in", esc(p.lives||""))}
     ${line("Originally from", esc(p.from||""))}
@@ -49,6 +50,7 @@ function profileForm(s){
   <form data-form="profile" data-id="${s.id}" style="margin-top:18px"><div class="form-row">
     ${f("pn","Student name","name","text",s.name)}
     ${f("pg","Grade","grade","text",s.grade,"e.g. Grade 8")}
+    ${f("ptu","Tutor(s)","tutors","text",tutorsOf(s),"Separate names with commas")}
     ${f("pb","Birthday","birthday","date",p.birthday)}
     ${f("psc","School","school","text",p.school,"School name")}
     ${f("pl","Lives in","lives","text",p.lives,"City, state")}

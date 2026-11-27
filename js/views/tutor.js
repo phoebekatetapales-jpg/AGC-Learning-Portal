@@ -34,7 +34,7 @@ V.student = (id) => {
       </div>
       <button class="btn btn-primary">Save payment details</button>
     </form>` : "";
-  return `${back}<div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}</p>${can("viewProfiles")?`<a class="btn btn-ghost btn-sm" style="margin-top:12px" href="#/profile/${s.id}">View student profile</a>`:""}</div>
+  return `${back}<div class="head"><h1>${esc(s.name)}</h1><p>${esc(s.grade)} · Parent: ${esc(s.parent)}${s.tutors?.length?` · Tutor${s.tutors.length>1?"s":""}: ${esc(tutorsOf(s))}`:""}</p>${can("viewProfiles")?`<a class="btn btn-ghost btn-sm" style="margin-top:12px" href="#/profile/${s.id}">View student profile</a>`:""}</div>
   <div class="grid g3">${balanceCard(s,true)}${can("viewSchedule")?nextSessionCard(id):`<div class="card"><div class="label">Lessons completed</div><div class="big">${overall(s).done} <small>of ${overall(s).total}</small></div></div>`}${can("viewResults")?`<div class="card"><h2>Assessments</h2>${res.length?res.map(r=>`<div class="row"><h4>${esc(S.quizzes[r.quiz].title)}</h4><span class="tag gold">${r.score}/${r.total}</span></div>`).join(""):`<p class="muted small" style="margin:0">None taken yet.</p>`}</div>`:""}</div>
   ${can("viewBilling")?`<h2 class="section-title">Payment &amp; package</h2><div class="grid g2">${billingCard(s)}${billingForm}</div>`:""}
   <h2 class="section-title">Courses</h2><div class="grid g3">${s.courses.map(c=>courseCard(s,c,false)).join("")}</div>
