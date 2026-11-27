@@ -7,8 +7,8 @@ const NAV = {
   student:[["dashboard","Dashboard"],["courses","My courses"],["assignments","Assignments"],["assessments","Assessments"],["notes","Session notes"],["schedule","Schedule"]],
   parent:[["overview","Overview"],["notes","Session notes"],["schedule","Schedule"],["packages","Packages & balance"]],
   tutor:[["tdash","Dashboard"],["log","Log a session"],["review","Review work"],["schedule","Schedule"],["calendar","Calendar"],["hours","Hours & payments"],["library","Course library"]],
-  admin:[["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["calendar","Calendar"]],
-  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["profiles","Student profiles"],["schedule","Schedule"],["calendar","Calendar"],["hours","Tutor hours & payments"],["access","Admin access"]],
+  admin:[["adash","Students & progress"],["tutors","Tutors"],["profiles","Student profiles"],["schedule","Schedule"],["calendar","Calendar"]],
+  superadmin:[["portal","Portal progress"],["adash","Students & progress"],["tutors","Tutors"],["profiles","Student profiles"],["schedule","Schedule"],["calendar","Calendar"],["hours","Tutor hours & payments"],["access","Admin access"]],
   developer:[["dev","System"],["devdata","Data editor"]]
 };
 const ALLOWED = {
@@ -16,12 +16,12 @@ const ALLOWED = {
   parent:["overview","notes","schedule","packages"],
   // Tutors don't see student pages (progress or profiles): only Admin and Super Admin do.
   tutor:["tdash","log","review","assignment","schedule","calendar","hours","library","course","lesson"],
-  admin:["adash","student","profiles","profile","schedule","calendar"],
-  superadmin:["portal","adash","student","profiles","profile","schedule","calendar","hours","access"],
+  admin:["adash","tutors","student","profiles","profile","schedule","calendar"],
+  superadmin:["portal","adash","tutors","student","profiles","profile","schedule","calendar","hours","access"],
   developer:["dev","devdata"]
 };
 // Pages the Admin only sees when the Super Admin allows it
-const NEEDS = {adash:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule", calendar:"viewSchedule"};
+const NEEDS = {adash:"viewStudents", tutors:"viewStudents", student:"viewStudents", profiles:"viewProfiles", profile:"viewProfiles", schedule:"viewSchedule", calendar:"viewSchedule"};
 const navFor = role => NAV[role].filter(([k]) => role!=="admin" || !NEEDS[k] || can(NEEDS[k]));
 function route(){ const h = location.hash.replace(/^#\/?/,""); const [name,...args] = h.split("/"); return {name,args}; }
 
